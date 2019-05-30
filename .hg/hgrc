@@ -12,3 +12,14 @@ default = http://repo.gem5.org/gem5
 [ui]
 # name and email (local to this repository, optional), e.g.
 # username = Jane Doe <jdoe@example.com>
+
+# The following lines were automatically added by gem5/SConstruct
+# to provide the gem5 style-checking hooks
+[extensions]
+style = /media/pan/Sys/Ubuntu/DVFS/GAN/gem5-dvfs/util/style.py
+
+[hooks]
+pretxncommit.style = python:style.check_style
+pre-qrefresh.style = python:style.check_style
+# End of SConstruct additions
+
