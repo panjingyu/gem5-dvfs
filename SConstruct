@@ -224,7 +224,7 @@ for key,val in sorted(os.environ.iteritems()):
 # Tell scons to avoid implicit command dependencies to avoid issues
 # with the param wrappes being compiled twice (see
 # http://scons.tigris.org/issues/show_bug.cgi?id=2811)
-main = Environment(ENV=use_env, IMPLICIT_COMMAND_DEPENDENCIES=0)
+main = Environment(ENV=use_env, IMPLICIT_COMMAND_DEPENDENCIES=0,CC='gcc-5',CXX='g++-5')
 main.Decider('MD5-timestamp')
 main.root = Dir(".")         # The current directory (where this file lives).
 main.srcdir = Dir("src")     # The source directory
@@ -562,6 +562,7 @@ if main['GCC'] or main['CLANG']:
     # Add selected sanity checks from -Wextra
     main.Append(CXXFLAGS=['-Wmissing-field-initializers',
                           '-Woverloaded-virtual'])
+    main.Append(CXXFLAGS=['-DPROTOBUF_INLINE_NOT_IN_HEADERS=0'])
 else:
     print termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal,
     print "Don't know what compiler options to use for your compiler."
