@@ -685,14 +685,48 @@ def run(options, root, testsys, cpu_class):
         if options.fast_forward:
             m5.stats.reset()
         print "**** REAL SIMULATION ****"
+	## MBC: dump stats in stages 
+	linenums=0
+	full_data=1.0
+	fin=open("/home/sth/gem5/gem5-stable/parameter/parameter.config",'r')
+	datas=fin.read()	
+	rows=datas.split('\n')
+	for row in rows:
+	    linenums+=1
+	    if(linenums==7):
+	        spilt_row=row.split(" ")
+		spilt_row[1]=float(spilt_row[1])
+		full_data=spilt_row[1]
+	#full_data=full_data*1000000000/15*20
+	print 'maxtick = %i' %maxtick
+	tick_num = 500
+	exit_cause = "simulate() limit reached"
+	phase = 1 
+	while(exit_cause == "simulate() limit reached"):
+	    exit_event = m5.simulate(tick_num)
+	    exit_cause = exit_event.getCause()
+	    maxtick = maxtick - tick_num
+	    if (maxtick <= 0):
+	        exit_cause = "Max simulate() limit reached"
+	    if ((exit_cause == "simulate() limit reached") & (m5.curTick() % tick_num == 0)):
+		 #print "tick_num = %d\n" %tick_num
+		 #print "curTick = %d\n" %m5.curTick()
+		 if(m5.stats.stats_dict['system.cpu.numCycles'].total() > (full_data )):#
+             # 2000 represent inst. numbers
+		     #print "dump \n"
+		     #print "***** number of simulated instructions is %d *****\n" %(m5.stats.stats_dict['sim_insts'].total() / phase)
+		     m5.stats.dump()
+		     m5.stats.reset()
+		     phase = phase + 1
+	#######################################
 
         # If checkpoints are being taken, then the checkpoint instruction
         # will occur in the benchmark code it self.
-        if options.repeat_switch and maxtick > options.repeat_switch:
+        '''if options.repeat_switch and maxtick > options.repeat_switch:
             exit_event = repeatSwitch(testsys, repeat_switch_cpu_list,
                                       maxtick, options.repeat_switch)
         else:
-            exit_event = benchCheckpoints(options, maxtick, cptdir)
+            exit_event = benchCheckpoints(options, maxtick, cptdir)'''
 
     print 'Exiting @ tick %i because %s' % (m5.curTick(), exit_event.getCause())
     if options.checkpoint_at_end:
