@@ -29,3 +29,5 @@ m5out
 .vscode
 /*.out
 /.hg/hgrc
+/*.txt
+/*.S

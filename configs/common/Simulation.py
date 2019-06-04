@@ -686,17 +686,17 @@ def run(options, root, testsys, cpu_class):
             m5.stats.reset()
         print "**** REAL SIMULATION ****"
 	## MBC: dump stats in stages 
-	linenums=0
-	full_data=1.0
-	fin=open("/home/sth/gem5/gem5-stable/parameter/parameter.config",'r')
-	datas=fin.read()	
-	rows=datas.split('\n')
-	for row in rows:
-	    linenums+=1
-	    if(linenums==7):
-	        spilt_row=row.split(" ")
-		spilt_row[1]=float(spilt_row[1])
-		full_data=spilt_row[1]
+    linenums=0
+    full_data=1.0
+    with open("/home/pan/DVFS/gem5-dvfs/parameter/parameter.config",'r') as fin:
+        rows = fin.readlines()
+        full_data = float(rows[7].split(' ')[1])
+        # for row in rows:
+        #     linenums+=1
+        #     if(linenums==7):
+        #         spilt_row=row.split(" ")
+        #         spilt_row[1]=float(spilt_row[1])
+        #         full_data=spilt_row[1]
 	#full_data=full_data*1000000000/15*20
 	print 'maxtick = %i' %maxtick
 	tick_num = 500

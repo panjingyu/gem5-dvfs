@@ -121,7 +121,11 @@ def build_test_system(np):
     # Create a source clock for the CPUs and set the clock period
     test_sys.cpu_clk_domain = SrcClockDomain(clock = options.cpu_clock,
                                              voltage_domain =
-                                             test_sys.cpu_voltage_domain)
+                                             test_sys.cpu_voltage_domain,
+                                             domain_id = 0)
+    
+    test_sys.dvfs_handler.domains = test_sys.cpu_clk_domain
+    test_sys.dvfs_handler.enable = 1
 
     if options.kernel is not None:
         test_sys.kernel = binary(options.kernel)

@@ -281,7 +281,8 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
         if machine_type == "VExpress_EMM64":
             self.kernel = binary('vmlinux.aarch64.20140821')
         elif machine_type == "VExpress_EMM":
-            self.kernel = binary('vmlinux.aarch32.ll_20131205.0-gem5')
+            # self.kernel = binary('vmlinux.aarch32.ll_20131205.0-gem5')
+            self.kernel = binary('/home/pan/DVFS/linux-arm-legacy/vmlinux')
         else:
             self.kernel = binary('vmlinux.arm.smp.fb.2.6.38.8')
 
