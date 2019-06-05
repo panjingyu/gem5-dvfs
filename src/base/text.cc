@@ -185,7 +185,7 @@ void PRIn()
 }
 void CountIn()
 {
-    ifstream fin("/home/pan/Ubuntu/DVFS/GAN/gem5-dvfs/parameter/counter_input_o3.txt");
+    ifstream fin("/home/pan/DVFS/gem5-dvfs/parameter/counter_input_o3.txt");
 
     if (!fin) {
         cerr << "Can't open CountIn file." << endl;
@@ -230,7 +230,7 @@ void ParamIn()
  */
 void FormulaIn()
 {
-    ifstream fin("/home/pan/Ubuntu/DVFS/GAN/gem5-dvfs/parameter/label_o3.txt");
+    ifstream fin("/home/pan/DVFS/gem5-dvfs/parameter/label_o3.txt");
     string s;
     while (!fin.eof()) {
         getline(fin, s);
@@ -480,7 +480,7 @@ void
 Text::begin()
 {
     if (Incounter == 0) {
-        config.openfile("/home/pan/Ubuntu/DVFS/GAN/gem5-dvfs/parameter/parameter.config");
+        config.openfile("/home/pan/DVFS/gem5-dvfs/parameter/parameter.config");
 	CountIn();  // input the counter
         ParamIn();  // input the parameters
         FormulaIn(); // input the formula
@@ -501,7 +501,7 @@ Text::end()
         f.close();
         ofstream ff(config.noiseout, ios::trunc);
          ff.close();
-	ofstream fff("/home/pan/Ubuntu/DVFS/GAN/gem5-dvfs/m5out/powerlist.txt", ios::trunc);
+    	ofstream fff("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::trunc);
          fff.close();
         Outstats = 1;
     }
@@ -538,7 +538,7 @@ Text::end()
     ffout << "--------------- tick = " << nowTick << " -----------------" << endl;
     ffout << endl; 
     ffout.close();
-    ofstream fffout("/home/pan/Ubuntu/DVFS/GAN/gem5-dvfs/m5out/powerlist.txt", ios::app);
+    ofstream fffout("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::app);
     fffout << power<< endl;
     fffout.close();
     ccprintf(*stream, "\n---------- End Simulation Statistics   ----------\n");

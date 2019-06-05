@@ -14,8 +14,7 @@
 通过遗传算法来搜索代码空间的最佳组合来寻求最值。这个类似的工作我们已经做过了，是使用模拟退火算法进行的。
 
 3、该github代码是使用GAN网络来生成测试浏览器漏洞的代码（可能），我们可以类似的做一个GAN网络
-来生成，详见
-https://github.com/13o-bbr-bbq/machine_learning_security/blob/master/Generator
+来生成，详见[link](https://github.com/13o-bbr-bbq/machine_learning_security/blob/master/Generator)。
 
 GAN网络的输入是一维的数字，每个数字代表不同的指令。
 
@@ -26,4 +25,9 @@ GAN网络的输入是一维的数字，每个数字代表不同的指令。
 `/gem5/parameter/parameter.config`:该文件内是修改的参数，powerin表示功耗输入文件，powerout表示功耗输出文件，powerfreq表示多少个cycle求一次功耗，powervol是电压。其他的是求noise的，不用管
 `/gem5/configs/common/Simulation.py`: 该文件对gem5仿真流程的控制，让其powerfreq个cycle输出一段stats，来计算功耗。
 `/gem5/src/base/text.cc`: 该文件是修改gem5的stats，计算功耗的模型。
-`/gem5/1.cc`:该文件的功能是指令空间生成代码，输入13个维度，输出ARM的代码
+`/gem5/instgen.cc`:该文件的功能是指令空间生成代码，输入13个维度，输出ARM的代码
+
+
+## Other notes
+
+gem5似乎在编译时会往build/target文件夹中的Address.hh写入依赖于编译时的路径的环境变量等。
