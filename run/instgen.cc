@@ -77,14 +77,8 @@ void writefile(char const *filename)
 	suminstruction = shu.size();
 
 	branch = config.branpre * 4 + 128;
-	cout << "here" << branch << endl;
+	cout << "#branch = " << branch << endl;
 	srand((unsigned int)time(NULL));
-
-	ofstream ftest("456.txt", ios::app);
-	if (!ftest)
-	{
-		cout << "Can't open file." << endl;
-	}
 
 	ofstream outfile(filename);
 	if (!outfile)
@@ -234,9 +228,8 @@ void writefile(char const *filename)
 
 int main()
 {
-
-	openfile("./123.txt");
+	openfile("./13-vec.txt");
 	writefile("./testout.S");
-	cout << "ok" << endl;
+	cout << "instgen done..." << endl;
 	return 0;
 }
