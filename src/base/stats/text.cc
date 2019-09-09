@@ -41,18 +41,358 @@
 #include <math.h>
 #endif
 #include <cmath>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
 
 #include "base/stats/info.hh"
 #include "base/stats/text.hh"
 #include "base/cast.hh"
 #include "base/misc.hh"
 #include "base/str.hh"
+#include <complex>
+#include <string>
+#include <stdlib.h>
+#include <fstream>
+#include <vector>
+#include <cmath>
 
 using namespace std;
+
+bool Incounter = 0;
+bool Outstats = 0;
+int Countcnt = 0;
+int jj = 0;
+int count = 0;
+vector<string> Countname(64); // all the input counter name
+
+// value(s) corresponding with the specific counter name
+// some counter has 3 values, so the counter name can be 
+// represented by name_0, name_1, name_2
+map<string, double> CounterValue;
+map<string, double>::iterator iter;
+map<string, bool> mapflag; // if or not insert the CounterValue map
+
+vector<double> Param;
+
+vector<string> line; // every line in the counter_atomic.txt
+vector<string> formula; 
+vector<double> results; // the results for the formula
+
+complex <double>   r[20];
+complex <double>  p[20];
+complex <double>  xx0[20];
+complex <double>  xx1[20];
+long frequency;
+double timeinterval;
+// cycle
+long numCycle;
+// present tick
+long nowTick;
+long ticks;
+
+/**
+ * input the counter name required for power estimation
+ * store the counter name in the vector Countname
+ */
+
+class Configoperation
+{
+public:
+	void openfile(char const* filename);
+	string powerin;
+	string powerout;
+	float powerfreq;
+	float powervol;
+	string noisein;
+	string noiseout;
+	float noisetime;
+}config;
+
+template <class Type>
+Type stringToNum(const string& str) {
+	istringstream iss(str);
+	Type num;
+	iss >> num;
+	return num;
+}
+
+
+void Configoperation::openfile(char const* filename)
+{
+	int i = 0;
+	string ss, name, val;
+	ifstream infile(filename);
+	if (!infile) {
+		cout << "Can't open Configoperation file." << endl;
+	}
+		while (getline(infile, ss))
+		{
+			istringstream word(ss);
+			word >> name;
+			word >> val;
+			if (i>0)
+			{
+				if (i == 1) config.powerin = val;
+				if (i == 2) config.powerout = val;
+				if (i == 3) config.powerfreq = stringToNum<float>(val);
+				if (i == 4) config.powervol = stringToNum<float>(val);
+				if (i == 5) config.noisein = val;
+				if (i == 6) config.noiseout = val;
+				if (i == 7) config.noisetime = stringToNum<float>(val);
+				i++;
+			}
+			if (name == "#") i = 1;
+		}
+		
+
+	
+}
+void PRIn()
+{
+	int i = 0, ii = 0;
+
+	double ss[50];
+	
+	ifstream fin(config.noisein,ios::in);
+	if (!fin) {
+		cerr << "Can't open PRIn file." << endl;
+		getchar();
+	}
+	
+	while (!fin.eof())
+	{
+			fin >> ss[i];
+			i++;
+	}
+ 
+	jj =i / 4;
+	for (i =0; i<jj; i++)
+	{
+
+		ii = 2 * i;
+		p[i] = complex <double>(ss[ii], ss[ii + 1]);
+
+	}
+	for (i =0; i<jj; i++)
+	{
+
+		ii = 2 * i+2*jj;
+		r[i] = complex <double>(ss[ii], ss[ii + 1]);
+
+	}
+	
+	fin.close();
+	
+	
+}
+void CountIn()
+{
+    ifstream fin("/home/pan/DVFS/gem5-dvfs/parameter/counter_input_o3.txt");
+
+    if (!fin) {
+        cerr << "Can't open CountIn file." << endl;
+        getchar();
+    }
+
+    while (!fin.eof()) {
+        fin >> Countname[Countcnt];
+        Countcnt++;
+    }
+    
+    fin.close();
+}
+
+/**
+ * input the parameters required for power estimation
+ * store the parameters in the vector param
+ */
+void ParamIn()
+{
+    ifstream fin(config.powerin);
+
+    if (!fin) {
+        cerr << "Can't open ParamIn the file." << endl;
+        getchar();
+    }
+
+    while (!fin.eof()) {
+        string str;
+        fin >> str;
+        double param;
+        stringstream sstr;
+        sstr.str(str);
+        sstr >> param;
+        Param.push_back(param);
+    }
+}
+
+/**
+ * input the formulas required for power estimatipn
+ * store every line in the vector line
+ */
+void FormulaIn()
+{
+    ifstream fin("/home/pan/DVFS/gem5-dvfs/parameter/label_o3.txt");
+    string s;
+    while (!fin.eof()) {
+        getline(fin, s);
+        if (s != "\0") {
+            line.push_back(s);
+        }
+    }
+
+    fin.close();
+}
+
+
+void xxprosess(double u, int m)
+{
+	int i;
+	complex <double> j,jjj;
+	complex <double> t, s;
+	t = complex <double>(u, 0);
+	s = complex <double>(timeinterval, 0);
+	if (m == 1)
+	{
+		for (i = 0; i<jj; i++)
+			xx0[i] =-t / (p[i]);
+	}
+	else
+	{
+		for (i = 0; i<jj; i++)
+			xx0[i] = xx1[i];
+	}
+
+	for (i = 0; i<jj; i++)
+	{
+		jjj = p[i] * s;
+	//	cout << "jjj=" << jjj << endl;
+		j = exp(jjj);
+		xx1[i] = xx0[i] * j + (j - complex <double>(1, 0)) / p[i] * t;
+		
+     
+	}
+//	cout << "xx1=" << xx1[0] << endl;
+
+}
+
+
+double NoiseEstimation(double u, int m)
+{
+	complex <double>  w = 0;
+	xxprosess(u, m);
+	int a;
+	for (a = 0; a<jj; a++)
+		w += r[a] * xx1[a];
+   return w.real();
+}
+
+/**
+ * some sub function for the formula calculation
+ */
+double math(double op1, string opc, double op2)
+{
+    if (opc == "+")          return op1+op2;
+    else if (opc == "-")     return op1-op2;
+    else if (opc == "*")     return op1*op2;
+    else {
+        if ((op1==0) | (op2==0)) return 0;
+        else                 return op1/op2;
+    }
+}
+
+double processFormula(vector<string> ff)
+{
+    int len = ff.size();
+    string index = "";
+    bool mul = 0;
+
+    double res;
+
+    if ((ff[len-1] == "1") | (ff[len-1] == "2") | (ff[len-1] == "3"))
+    {
+        index = ff[len-1];
+        mul = 1;
+        ff.pop_back();
+        len = ff.size();
+    }
+
+    if (len == 1) {
+        if (mul) {
+            string key = formula[0] + index;
+            res = CounterValue[key];
+        }
+        else {
+            string key = formula[0];
+            res = CounterValue[key];
+        }
+    }
+
+    else { // len is 3, 5...
+        vector<double> opx; //operand
+        vector<string> opc; //opcode
+        opx.clear();
+        opc.clear();
+        int times = len/2;
+        double temp = 0;
+
+        for (int i = 0; i <= times; i++) 
+        {
+            string key1 = formula[2*i];
+            key1 = mul ? (key1 + index) : key1;
+            double value = CounterValue[key1];
+            opx.push_back(value);
+        }
+        for (int i = 0; i < times; i++)
+        {
+            string key2 = formula[2*i+1];
+            opc.push_back(key2);
+        }
+
+        // calculate the formula
+        for (int i = 0; i < times; i++) 
+        {
+            double op1 = (i==0) ? opx[0] : temp;
+            temp = math(op1, opc[i], opx[i+1]);
+        }
+
+        res = temp;
+    }
+
+    return res;
+
+}
+
+double PowerEstimation()
+{
+    double Energy = 0;
+
+    for (int i = 0; i < line.size(); i++)
+    {
+        string str = line[i] + " ";
+        int size = str.size();
+        formula.clear();
+
+        for (int j = 0; j < size; j++)
+        {
+            string::size_type pos = str.find(' ', j);
+            if (pos < size) 
+            {
+                string s = str.substr(j, pos-j);
+                formula.push_back(s);
+                j = pos;
+            }
+        }
+
+        double Formulavalue = processFormula(formula);
+        Energy += Formulavalue * Param[i];
+    }
+
+    double power = Energy / numCycle;
+    power += Param[Param.size()-1];
+
+    return power;
+
+}
+/**********************************************************************************/
 
 #ifndef NAN
 float __nan();
@@ -139,12 +479,68 @@ Text::valid() const
 void
 Text::begin()
 {
+    if (Incounter == 0) {
+        config.openfile("/home/pan/DVFS/gem5-dvfs/parameter/parameter.config");
+	CountIn();  // input the counter
+        ParamIn();  // input the parameters
+        FormulaIn(); // input the formula
+	PRIn();
+        Incounter = 1;
+    }
+    CounterValue.clear();
+    mapflag.clear();
     ccprintf(*stream, "\n---------- Begin Simulation Statistics ----------\n");
 }
 
 void
 Text::end()
 {
+    int i,j;
+    if (Outstats == 0) {
+        ofstream f(config.powerout, ios::trunc);
+        f.close();
+        ofstream ff(config.noiseout, ios::trunc);
+         ff.close();
+    	ofstream fff("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::trunc);
+         fff.close();
+        Outstats = 1;
+    }
+
+    ofstream fout(config.powerout, ios::app);
+    
+    // dump the stats corresponding with required counters
+    fout << "************ dump required stats ************" << endl;
+    for (iter = CounterValue.begin(); iter != CounterValue.end(); ++iter) {
+        fout << iter->first << "    " << iter->second << endl;
+    }
+    
+    double power = PowerEstimation();
+    fout << "--------------- power = " << power << " ---------------" << endl;
+    fout << "--------------- cycle = " << numCycle << " ---------------" << endl;
+    fout << "--------------- tick = " << nowTick << " -----------------" << endl;
+    fout << endl;
+    fout.close();
+    ofstream ffout(config.noiseout, ios::app);
+    timeinterval=config.noisetime;
+	
+    j=((double)ticks)/1000000000000/config.noisetime;
+    double noise,u;
+     u=power/config.powervol;
+     ffout << "--------------- power = " << power << " ---------------" << endl;
+     ffout << "--------------- ticks = " << ticks << " -----------------" << endl;
+    
+    for(i=0;i<j;i++)
+    {
+      count=count+1;
+      noise=NoiseEstimation(u,count);
+      ffout << "--------------- noise = " << noise << " -----------------" << endl;
+    }
+    ffout << "--------------- tick = " << nowTick << " -----------------" << endl;
+    ffout << endl; 
+    ffout.close();
+    ofstream fffout("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::app);
+    fffout << power<< endl;
+    fffout.close();
     ccprintf(*stream, "\n---------- End Simulation Statistics   ----------\n");
     stream->flush();
 }
@@ -202,6 +598,20 @@ ScalarPrint::update(Result val, Result total)
 {
     value = val;
     if (total) {
+        for (int i = 0; i < Countname.size(); i++) {
+            if (name == Countname[i]) {
+                /*cout << "value = " << value << endl;
+                cout << "name = " << name << endl;
+                cout << "pdf = " << (val/total) << endl;
+                cout << "cdf = " << cdf << endl;
+                cout << "\n" << endl;*/
+                CounterValue.insert(pair<string, double>((name+"1"), value));
+                CounterValue.insert(pair<string, double>((name+"2"), (val/total)));
+                CounterValue.insert(pair<string, double>((name+"3"), (val/total + cdf)));
+                mapflag.insert(pair<string, bool>(name, 1)); 
+                
+            }
+        }
         pdf = val / total;
         cdf += pdf;
     }
@@ -229,6 +639,31 @@ ScalarPrint::operator()(ostream &stream, bool oneLine) const
         ccprintf(stream, "%-40s %12s %10s %10s", name,
                  ValueToString(value, precision), pdfstr.str(), cdfstr.str());
 
+        for (int i = 0; i < Countname.size(); i++) {
+            if ((name == Countname[i]) && (mapflag[name] == 0)) {
+                /*cout << "name = " << name << endl;
+                cout << "value = " << value << endl;
+                cout << "\n" << endl;*/
+                CounterValue.insert(pair<string, double>(name, value));
+                mapflag.insert(pair<string, bool>(name, 1));
+            }
+        }
+        
+        // number of cycles every phase
+        if (name == "system.cpu.numCycles") {
+            numCycle = value;
+        }
+
+        // present tick when dump
+        if (name == "final_tick") {
+            nowTick = value;
+        }
+        if (name == "sim_ticks") {
+            ticks = value;
+        }
+        if (name == "sim_freq") {
+            frequency = value;
+        }
         if (descriptions) {
             if (!desc.empty())
                 ccprintf(stream, " # %s", desc);

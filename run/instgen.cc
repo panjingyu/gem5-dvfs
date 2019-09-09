@@ -229,7 +229,7 @@ void writefile(char const *filename)
 int main()
 {
 	openfile("./13-vec.txt");
-	writefile("./testout.S");
+	writefile("./testout.s");
 	cout << "instgen done..." << endl;
 	return 0;
 }

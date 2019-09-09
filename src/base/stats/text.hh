@@ -38,6 +38,24 @@
 #include "base/stats/types.hh"
 #include "base/output.hh"
 
+/************* declaration for power estimation functions ************/
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <iostream>
+using namespace std;
+void CountIn();
+void ParamIn();
+void FormulaIn();
+void PRIn();
+void xxprosess(double u, int m);
+double math(double op1, string opc, double op2);
+double NoiseEstimation(double u, int m);
+double processFormula(vector<string> ff);
+double PowerEstimation();
+/********************************************************************/
+
 namespace Stats {
 
 class Text : public Output
