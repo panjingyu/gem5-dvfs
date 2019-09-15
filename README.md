@@ -25,7 +25,7 @@ GAN网络的输入是一维的数字，每个数字代表不同的指令。
 - `/gem5/parameter`:该文件夹内是各种参数，需要修改的是parameter.config
 - `/gem5/parameter/parameter.config`:该文件内是修改的参数，powerin表示功耗输入文件，powerout表示功耗输出文件，powerfreq表示多少个cycle求一次功耗，powervol是电压。其他的是求noise的，不用管
 - `/gem5/configs/common/Simulation.py`: 该文件对gem5仿真流程的控制，让其powerfreq个cycle输出一段stats，来计算功耗。
-- `/gem5/src/base/text.cc`: 该文件是修改gem5的stats，计算功耗的模型。
+- `/gem5/src/base/stats/text.cc`: 该文件是修改gem5的stats，计算功耗的模型。
 - `/gem5/instgen.cc`:该文件的功能是指令空间生成代码，输入13个维度，输出ARM的代码
 
 

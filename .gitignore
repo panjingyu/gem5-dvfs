@@ -30,3 +30,4 @@ m5out
 /run/*.out
 /run/*.s
 /.hg/hgrc
+/*.txt

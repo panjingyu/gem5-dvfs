@@ -61,6 +61,7 @@ bool Outstats = 0;
 int Countcnt = 0;
 int jj = 0;
 int count = 0;
+int flag_change=0;
 vector<string> Countname(64); // all the input counter name
 
 // value(s) corresponding with the specific counter name
@@ -145,6 +146,19 @@ void Configoperation::openfile(char const* filename)
 
 	
 }
+
+void is_file(string str){
+	ifstream infile(str);
+	if (! infile){
+		flag_change=0;
+	
+	}
+	else{
+		flag_change=1;
+		
+	}
+}
+
 void PRIn()
 {
 	int i = 0, ii = 0;
@@ -181,8 +195,9 @@ void PRIn()
 	
 	fin.close();
 	
-	
 }
+
+
 void CountIn()
 {
     ifstream fin("/home/pan/DVFS/gem5-dvfs/parameter/counter_input_o3.txt");
@@ -246,6 +261,7 @@ void FormulaIn()
 void xxprosess(double u, int m)
 {
 	int i;
+  
 	complex <double> j,jjj;
 	complex <double> t, s;
 	t = complex <double>(u, 0);
@@ -264,26 +280,29 @@ void xxprosess(double u, int m)
 	for (i = 0; i<jj; i++)
 	{
 		jjj = p[i] * s;
-	//	cout << "jjj=" << jjj << endl;
 		j = exp(jjj);
 		xx1[i] = xx0[i] * j + (j - complex <double>(1, 0)) / p[i] * t;
 		
-     
 	}
-//	cout << "xx1=" << xx1[0] << endl;
 
 }
 
 
 double NoiseEstimation(double u, int m)
 {
-	complex <double>  w = 0;
+	complex <double>  y = 0;
+        double yy;
 	xxprosess(u, m);
 	int a;
 	for (a = 0; a<jj; a++)
-		w += r[a] * xx1[a];
-   return w.real();
+		y += r[a] * xx1[a];
+        yy=y.real();
+        yy=abs(y);
+   return yy;
 }
+
+
+
 
 /**
  * some sub function for the formula calculation
@@ -386,12 +405,16 @@ double PowerEstimation()
         Energy += Formulavalue * Param[i];
     }
 
-    double power = Energy / numCycle;
+    double power = Energy / numCycle ;
     power += Param[Param.size()-1];
-
+    power=power*config.powervol*config.powervol;
     return power;
 
 }
+
+
+
+
 /**********************************************************************************/
 
 #ifndef NAN
@@ -501,11 +524,13 @@ Text::end()
         f.close();
         ofstream ff(config.noiseout, ios::trunc);
          ff.close();
-    	ofstream fff("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::trunc);
+	ofstream fff("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::trunc);
          fff.close();
         Outstats = 1;
     }
 
+
+	
     ofstream fout(config.powerout, ios::app);
     
     // dump the stats corresponding with required counters
@@ -520,27 +545,86 @@ Text::end()
     fout << "--------------- tick = " << nowTick << " -----------------" << endl;
     fout << endl;
     fout.close();
+
+
+   	ofstream fffout("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::app);
+    fffout << power<< endl;
+    fffout.close();
     ofstream ffout(config.noiseout, ios::app);
-    timeinterval=config.noisetime;
+
+
+
+	/*****/
+    is_file("/home/pan/DVFS/gem5-dvfs/flag.txt");
+    if(flag_change==0){
+		ofstream outxxfile("/home/pan/DVFS/gem5-dvfs/xx.txt");
+		outxxfile << power<< endl;
+		outxxfile.close();
+	}
+
+	double noise,u;
 	
-    j=((double)ticks)/1000000000000/config.noisetime;
-    double noise,u;
-     u=power/config.powervol;
-     ffout << "--------------- power = " << power << " ---------------" << endl;
+    count=count+1;
+	timeinterval=config.noisetime;
+    if((flag_change==1) && (count==1)){
+		ffout << "--------------- DVFS -----------------" << endl;
+		double cs;
+		is_file("/home/pan/DVFS/gem5-dvfs/flag.txt");
+    	
+		
+		ifstream fin("/home/pan/DVFS/gem5-dvfs/xx.txt",ios::in);
+		while (!fin.eof()){
+			fin >> cs;
+		}	
+		fin.close();
+		
+		u=cs/config.powervol;
+		
+
+		count=count+1;
+		noise=NoiseEstimation(u,count);
+		noise=NoiseEstimation(u,count);
+		count=count+1;
+		noise=NoiseEstimation(u,count);count=count+1;
+		u=0;
+		for(i=0;i<100000;i++){
+      		
+      		noise=NoiseEstimation(u,count);
+      		ffout << "--------------- noise = " << noise << " -----------------" << endl;
+                count=count+1;
+    	        }
+	ffout << endl;
+	}
+
+       
+	/*******************/
+
      ffout << "--------------- ticks = " << ticks << " -----------------" << endl;
+   	 ffout << "--------------- tick = " << nowTick << " -----------------" << endl;
+   	 ffout << "--------------- power = " << power << " ---------------" << endl;
+     
+	
+     j=((double)ticks)/1000000000000/config.noisetime;
     
-    for(i=0;i<j;i++)
+    
+     u=power/config.powervol;//current
+  
+   
+     ffout << "--------------- nums_noise = " << j << " -----------------" << endl;
+    //int aaa=0;    
+     for(i=0;i<j;i++)
     {
       count=count+1;
       noise=NoiseEstimation(u,count);
       ffout << "--------------- noise = " << noise << " -----------------" << endl;
     }
-    ffout << "--------------- tick = " << nowTick << " -----------------" << endl;
+
+
+
+	/*****/
     ffout << endl; 
     ffout.close();
-    ofstream fffout("/home/pan/DVFS/gem5-dvfs/m5out/powerlist.txt", ios::app);
-    fffout << power<< endl;
-    fffout.close();
+ 
     ccprintf(*stream, "\n---------- End Simulation Statistics   ----------\n");
     stream->flush();
 }

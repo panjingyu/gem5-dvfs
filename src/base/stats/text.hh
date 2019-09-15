@@ -54,6 +54,7 @@ double math(double op1, string opc, double op2);
 double NoiseEstimation(double u, int m);
 double processFormula(vector<string> ff);
 double PowerEstimation();
+void is_file(string str);
 /********************************************************************/
 
 namespace Stats {
