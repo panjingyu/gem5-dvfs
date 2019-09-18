@@ -13,9 +13,10 @@ vector<int> shu;
 class Configoperation
 {
 public:
+	// 1-13: input vector
 	int numbase;	 //1
 	int bigbase;	 //2
-	float branpre; //3
+	float branpre; 	 //3
 	int ALUwgt;		 //4
 	int mulwgt;		 //5
 	int divwgt;		 //6
@@ -59,7 +60,7 @@ void openfile(char const *filename)
 		cout << "Can't open file." << endl;
 		assert(infile.is_open());
 	}
-	while (getline(infile, s))
+	while (getline(infile, s)) // get 13d vector
 	{
 		shu.push_back(stringToNum<int>(s));
 	}

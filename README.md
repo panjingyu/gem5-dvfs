@@ -35,4 +35,3 @@ gem5似乎在编译时会往build/target文件夹中的Address.hh写入依赖于
 
 ## 下一步
 
-研究功耗计算的结果
