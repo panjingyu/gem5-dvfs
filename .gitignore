@@ -27,7 +27,10 @@ m5out
 /system/arm/aarch64_bootloader/boot_emm_v2.arm64
 
 .vscode
-*.out
-*.s
-*.txt
+*.log
+/run/*.out
+/run/*.s
+/run/*.txt
+/run/codegen
 /.hg/hgrc
+xx.txt

@@ -1,13 +1,18 @@
 #!/bin/bash
 
+rm run/maxpower.log
+
+for i in {0..10}
+do
+
 rm m5out/*
 cd run
 # g++ -O2 instgen.cc -o instgen.out && ./instgen.out
 # arm-linux-gcc -static testout.s -o testout.out
 # arm-linux-gcc -static example.s -o example.out
 
-./assemblygen.py
-arm-linux-gcc -static newgen.s -o newgen.out
+./assemblygen.py --dir codegen --seed $i
+arm-linux-gcc -static codegen/${i}.s -o newgen.out
 cd ..
 
 # CMD=run/testout.out
@@ -17,8 +22,13 @@ CMD=run/newgen.out
 
 
 # use default peripheral parameters
-./build/ARM/gem5.opt configs/example/se.py -c $CMD --cpu-type=DerivO3CPU --caches # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
+./build/ARM/gem5.opt configs/example/se.py -c $CMD --cpu-type=DerivO3CPU --caches 1> /dev/null \
+# --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
 
 cd run
-./getmaxpower.py
+./getmaxpower.py >> maxpower.log
 cd ..
+
+# generate sample here
+
+done

@@ -6,7 +6,7 @@ import getopt
 import re
 import random
 
-num_loop = 3
+num_loop = 4 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
 num_reg = 10
 loop_size = 12
 
@@ -28,6 +28,7 @@ epilogue = \
 test_loop:
     cmp     r12, #num_loop   @ for loop condition
     blt     loop
+    bx      lr
 .end
 '''
 
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     original_dir = os.getcwd()
     
     try:
-        opts, args = getopt.getopt(argv, "s:d:", ["seed", "dir"])
+        opts, args = getopt.getopt(sys.argv[1:], "s:d:", ["seed=", "dir="])
     except getopt.GetoptError:
         print('Error: getopt.GetoptError')
         sys.exit(2)
@@ -129,10 +130,9 @@ if __name__ == "__main__":
         elif opt in ("-d", "--dir"):
             os.chdir(val)
 
-
     random.seed(seed)
-    filename_code = seed + ".txt"
-    filename_assembly = seed + '.s'
+    filename_code = str(seed) + ".txt"
+    filename_assembly = str(seed) + '.s'
 
     with open(filename_code, 'w') as f:
         write_program(f)
