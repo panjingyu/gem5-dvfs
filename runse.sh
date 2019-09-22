@@ -1,8 +1,10 @@
 #!/bin/bash
 
-rm run/maxpower.log
+# execute in root: ./runse.sh 1> runse.log 2>&1 &
 
-for i in {0..10}
+timestamp=$(date +%F-%R)
+
+for i in {0..3000}
 do
 
 rm m5out/*
@@ -26,9 +28,7 @@ CMD=run/newgen.out
 # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
 
 cd run
-./getmaxpower.py >> maxpower.log
+echo ${i}:$(./getmaxpower.py) >> maxpower-${timestamp}.log
 cd ..
-
-# generate sample here
 
 done
