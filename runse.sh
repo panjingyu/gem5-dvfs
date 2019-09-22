@@ -6,7 +6,7 @@ cd run
 # arm-linux-gcc -static testout.s -o testout.out
 # arm-linux-gcc -static example.s -o example.out
 
-./codegen.py && ./assemblygen.py
+./assemblygen.py
 arm-linux-gcc -static newgen.s -o newgen.out
 cd ..
 
