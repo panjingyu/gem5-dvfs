@@ -32,6 +32,4 @@ GAN网络的输入是一维的数字，每个数字代表不同的指令。
 ## Other notes
 
 gem5似乎在编译时会往build/target文件夹中的Address.hh写入依赖于编译时的路径的环境变量等。
-
-## 下一步
-
+`m5out/powerlist.txt`中前334行记录的应该是loader的功率，应当剔除

@@ -6,7 +6,7 @@ import getopt
 import re
 import random
 
-num_loop = 4 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
+num_loop = 5 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
 num_reg = 10
 loop_size = 12
 
@@ -28,7 +28,7 @@ epilogue = \
 test_loop:
     cmp     r12, #num_loop   @ for loop condition
     blt     loop
-    bx      lr
+    bx      lr               @ exit program
 .end
 '''
 
@@ -131,8 +131,8 @@ if __name__ == "__main__":
             os.chdir(val)
 
     random.seed(seed)
-    filename_code = str(seed) + ".txt"
-    filename_assembly = str(seed) + '.s'
+    filename_code = 'encoded/' + str(seed) + ".csv"
+    filename_assembly = 'assembly/' + str(seed) + '.s'
 
     with open(filename_code, 'w') as f:
         write_program(f)

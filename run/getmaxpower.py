@@ -1,17 +1,11 @@
 #!/usr/bin/python3
 
-import re
+import sys
 
-power = []
-
-# with open('../m5out/power.txt') as powerout:
-#     for line in powerout:
-#         power_m = re.search('(?<=power = )(\d+(\.\d+))', line)
-#         if power_m is not None:
-#             power.append(float(power_m.group()))
-
-with open('../m5out/powerlist.txt') as powerlist:
-    for p in powerlist:
-        power.append(float(p))
-
-print(max(power))
+with open('../m5out/powerlist.txt', 'r') as powerlist:
+    plist = powerlist.readlines()
+    if len(plist) <= 334:
+         sys.stderr.write('powerlist seems too small!\n')
+         exit(1)
+    else:
+        print(max([float(p) for p in plist[334:]]))
