@@ -4,7 +4,7 @@
 
 timestamp=$(date +%F-%R)
 
-for i in {1..10}
+for i in {15001..50000}
 do
 
     rm m5out/*
@@ -14,7 +14,7 @@ do
         # arm-linux-gcc -static example.s -o example.out
 
         ./assemblygen.py --dir codegen --seed $i
-        arm-linux-gcc -static codegen/${i}.s -o newgen.out
+        arm-linux-gcc -static codegen/assembly/${i}.s -o newgen.out
     cd ..
 
     # CMD=run/testout.out
@@ -29,7 +29,8 @@ do
 
     cd run
         cp ../m5out/powerlist.txt codegen/powerlist/${i}.txt
-        echo ${i}:$(./getmaxpower.py) >> maxpower-${timestamp}.log
+        chmod a-x codegen/powerlist/${i}.txt # powerlist bug (why is it executable??)
+        echo ${i}:$(./getmaxpower.py) >> codegen/maxpower-${timestamp}.log
     cd ..
 
 done

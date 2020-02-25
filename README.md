@@ -20,6 +20,7 @@
 GAN网络的输入是一维的数字，每个数字代表不同的指令。
 
 代码解释：
+
 - `gem5-stable-629fe6e6c781.tar.bz2`：gem5源码
 - `/gem5`：我们对gem5的修改，注意修改路径，用绝对路径
 - `/gem5/parameter`:该文件夹内是各种参数，需要修改的是parameter.config
@@ -27,7 +28,6 @@ GAN网络的输入是一维的数字，每个数字代表不同的指令。
 - `/gem5/configs/common/Simulation.py`: 该文件对gem5仿真流程的控制，让其powerfreq个cycle输出一段stats，来计算功耗。
 - `/gem5/src/base/stats/text.cc`: 该文件是修改gem5的stats，计算功耗的模型。
 - `/gem5/instgen.cc`:该文件的功能是指令空间生成代码，输入13个维度，输出ARM的代码
-
 
 ## Other notes
 
