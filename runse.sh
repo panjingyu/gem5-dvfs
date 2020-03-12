@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# execute in gem5 root: ./runse.sh 1> runse-$(date +%F-%R).log 2>&1 &
+# execute in gem5 root: ./runse.sh 1> log/runse-$(date +%F-%R).log 2>&1 &
 
 timestamp=$(date +%F-%R)
 
