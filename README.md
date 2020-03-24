@@ -8,18 +8,10 @@
 
 ## Ideas
 
-1、在Gem5中修改DVFS，即根据功耗动态调节电压和频率，所以需要知道ARM的最大功耗。
-所以想使用GAN网络来生成最大功耗的代码。
+gem5给出的power stats并不是clock-cycle-wise的，因此反复执行同一指令（操作数不同）
+每个指令的能耗 = power / (IPC * frequency) = power * CPI / frequency
 
-2、最大功耗的求解和论文"System-level_Max_Power_SYMPO_-_A_Systematic_Approa"类似，设定一个特定的代码空间，
-通过遗传算法来搜索代码空间的最佳组合来寻求最值。这个类似的工作我们已经做过了，是使用模拟退火算法进行的。
-
-3、该github代码是使用GAN网络来生成测试浏览器漏洞的代码（可能），我们可以类似的做一个GAN网络
-来生成，详见[link](https://github.com/13o-bbr-bbq/machine_learning_security/blob/master/Generator)。
-
-GAN网络的输入是一维的数字，每个数字代表不同的指令。
-
-代码解释：
+## 代码解释
 
 - `gem5-stable-629fe6e6c781.tar.bz2`：gem5源码
 - `/gem5`：我们对gem5的修改，注意修改路径，用绝对路径

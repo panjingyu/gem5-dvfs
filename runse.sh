@@ -1,21 +1,19 @@
 #!/bin/bash
 
-# execute in gem5 root: ./runse.sh 1> log/runse-$(date +%F-%R).log 2>&1 &
+# execute in gem5 root
 
 timestamp=$(date +%F-%R)
 
-for i in {15001..50000}
+for i in {0..0}
 do
 
     rm m5out/*
     cd run
-        # g++ -O2 instgen.cc -o instgen.out && ./instgen.out
-        # arm-linux-gcc -static testout.s -o testout.out
-        # arm-linux-gcc -static example.s -o example.out
-
         ./assemblygen.py --dir codegen --seed $i
         arm-linux-gcc -static codegen/assembly/${i}.s -o newgen.out
     cd ..
+
+    # select program to execute
 
     # CMD=run/testout.out
     # CMD=run/example.out
@@ -24,13 +22,21 @@ do
 
 
     # use default peripheral parameters
-    ./build/ARM/gem5.opt configs/example/se.py -c $CMD --cpu-type=DerivO3CPU --caches 1> /dev/null \
-    # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
+    # add debug flag Exec to see exact instuction in execution
+
+    ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
+        --debug-flags=Exec \
+        configs/example/se.py \
+        -c $CMD \
+        --cpu-type=DerivO3CPU \
+        --caches \
+        # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
 
     cd run
         cp ../m5out/powerlist.txt codegen/powerlist/${i}.txt
         chmod a-x codegen/powerlist/${i}.txt # powerlist bug (why is it executable??)
-        echo ${i}:$(./getmaxpower.py) >> codegen/maxpower-${timestamp}.log
+        # echo ${i}:$(./getmaxpower.py) >> codegen/maxpower-${timestamp}.log
+        ./parseinst.py ../log/runse-${i}.log
     cd ..
 
 done
