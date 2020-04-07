@@ -691,19 +691,18 @@ def run(options, root, testsys, cpu_class):
             m5.stats.reset()
         print "**** REAL SIMULATION ****"
 	## MBC: dump stats in stages 
-	linenums=0
-	full_data=1.0
-	fin=open("/home/pan/DVFS/gem5-dvfs/parameter/parameter.config",'r')
-	datas=fin.read()	
-	rows=datas.split('\n')
-	for row in rows:
-	    linenums+=1
-	    if(linenums==7):
-	        spilt_row=row.split(" ")
-		spilt_row[1]=float(spilt_row[1])
-		full_data=spilt_row[1]
-	#full_data=full_data*1000000000/15*20
-	print 'maxtick = %i' %maxtick
+	powerfreq=1.0
+	with open("../../parameter/parameter.config",'r') as param_file:
+        param_lines=param_file.readlines()
+        import re
+        number_pattern = re.compile('\d+')
+        for l in param_lines:
+            if 'powerfreq' in l:
+                num_match = number_pattern.search(l)
+                powerfreq = float(num_match.group(0))
+	# powerfreq = powerfreq * 1000000000 / 15 * 20
+    print 'powerfreq = %f' % powerfreq
+	print 'maxtick = %i' % maxtick
 	tick_num = 500
 	exit_cause = "simulate() limit reached"
 	phase = 1 
@@ -714,15 +713,15 @@ def run(options, root, testsys, cpu_class):
 	    if (maxtick <= 0):
 	        exit_cause = "Max simulate() limit reached"
 	    if ((exit_cause == "simulate() limit reached") & (m5.curTick() % tick_num == 0)):
-		 #print "tick_num = %d\n" %tick_num
-		 #print "curTick = %d\n" %m5.curTick()
-		 if(m5.stats.stats_dict['system.cpu.numCycles'].total() > (full_data )):#
-             # 2000 represent inst. numbers
-		     #print "dump \n"
-		     #print "***** number of simulated instructions is %d *****\n" %(m5.stats.stats_dict['sim_insts'].total() / phase)
-		     m5.stats.dump()
-		     m5.stats.reset()
-		     phase = phase + 1
+		    #print "tick_num = %d\n" %tick_num
+		    #print "curTick = %d\n" %m5.curTick()
+		    if(m5.stats.stats_dict['system.cpu.numCycles'].total() > (powerfreq )):#
+                # 2000 represent inst. numbers
+                print "dump \n"
+                print "***** number of simulated instructions is %d *****\n" %(m5.stats.stats_dict['sim_insts'].total() / phase)
+                m5.stats.dump()
+                m5.stats.reset()
+                phase = phase + 1
 	#######################################
 
         # If checkpoints are being taken, then the checkpoint instruction
