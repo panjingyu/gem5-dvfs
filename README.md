@@ -25,3 +25,8 @@ gem5给出的power stats并不是clock-cycle-wise的，因此反复执行同一�
 
 gem5似乎在编译时会往build/target文件夹中的Address.hh写入依赖于编译时的路径的环境变量等。
 `m5out/powerlist.txt`中前334行记录的应该是loader的功率，应当剔除
+
+由于有的时钟周期内并没有实际执行指令，需要找到执行指令时对应的功耗估计，按powerfreq=2算算
+可以问问学长有没有powerfreq较小时仍work的模型
+
+或者调调powerfreq等参数，看看能不能出现平滑一点的图

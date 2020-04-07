@@ -1,30 +1,48 @@
 #!/usr/bin/env python3
 
 import sys
+import re
 
-power = []
 with open('../m5out/powerlist.txt', 'r') as powerlist:
     plist = powerlist.readlines()
-    if len(plist) <= 334:
-         sys.stderr.write('powerlist seems too small!\n')
-         exit(1)
-    else:
-        power = plist[334:]
-assert power
 
+plist_iter = iter(plist)
 log_name = sys.argv[1]
-
-inst_lines = []
+sim_blocks = []
+other_info_lines = []
 with open(log_name, 'r') as log_file:
     log_lines = log_file.readlines()
-    main_mark = False
+    int_pattern = re.compile('\d+')
+    is_new_sim_block = False
     for l in log_lines:
-        if not main_mark and '@main' in l:
-            main_mark = True
-            inst_lines.append(l)
-        elif main_mark and 'system.cpu' in l:
-            # after @main
-            inst_lines.append(l)
+        try:
+            if 'info: Entering event queue' in l:
+                if is_new_sim_block:
+                    # last block has no instruction executed
+                    try:
+                        power = next(plist_iter)
+                    except StopIteration:
+                        power = -1
+                    sim_blocks.append((sim_num, "", power))
+                # process this block
+                sim_num_match = int_pattern.search(l)
+                if sim_num_match:
+                    sim_num = sim_num_match.group(0)
+                    is_new_sim_block = True
+                else:
+                    print("simulation block number not found!")
+                    exit(1)
+            elif is_new_sim_block:
+                is_new_sim_block = False
+                try:
+                    power = next(plist_iter)
+                except StopIteration:
+                    power = -1
+                sim_blocks.append((sim_num, l, power))
+            else:
+                other_info_lines.append(l)
+        except StopIteration:
+            break
 
-print(len(inst_lines))
-print(len(power))
+print(len(sim_blocks))
+print(len(plist))
