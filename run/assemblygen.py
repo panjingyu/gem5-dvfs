@@ -10,6 +10,12 @@ num_loop = 5 # this parameter does not affect gem5 simulation time too much, sin
 num_reg = 10
 loop_size = 12
 
+imm_frac = 0.2 # ratio of imm to total oprand1
+
+is_using_single_inst = False
+target_inst = None
+
+
 prologue = \
 '''.Ltext0:
     .align	2
@@ -65,8 +71,14 @@ num_inst_types = len(inst_dict)
 # note: the output imm here use the same code as its representation
 # and the range of imm should be coped with in later detailed generation
 def generate_inst():
-    imm_frac = 0.2 # ratio of imm to total oprand1
-    opcode   = random.randint(0, num_inst_types-1)
+    if is_using_single_inst:
+        try:
+            opcode = insts.index(target_inst)
+        except ValueError:
+            print("opcode not found!")
+            exit(1)
+    else: #generate opcode randomly
+        opcode   = random.randint(0, num_inst_types-1)
     dest_reg = random.randint(0, num_reg-1)
     oprand0  = random.randint(0, num_reg-1) # num_reg represents immediate
     if insts[opcode] in ['mul']:
@@ -82,7 +94,7 @@ def write_program(file_to_write):
     program = []
     for i in range(loop_size):
         inst = generate_inst()
-        f.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
+        file_to_write.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
 
 def get_imm_oprand(opcode):
     if opcode in inst:
@@ -119,7 +131,7 @@ if __name__ == "__main__":
     original_dir = os.getcwd()
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "s:d:", ["seed=", "dir="])
+        opts, args = getopt.getopt(sys.argv[1:], "s:d:i:", ["seed=", "dir=", "inst="])
     except getopt.GetoptError:
         print('Error: getopt.GetoptError')
         sys.exit(2)
@@ -129,6 +141,10 @@ if __name__ == "__main__":
             seed = int(val)
         elif opt in ("-d", "--dir"):
             os.chdir(val)
+        elif opt in ("-i", "--inst"):
+            target_inst = opt
+            is_using_single_inst = target_inst in inst_dict
+    assert not (target_inst is None and is_using_single_inst)
 
     random.seed(seed)
     filename_code = 'encoded/' + str(seed) + ".csv"
