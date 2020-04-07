@@ -9,7 +9,7 @@ do
 
     rm m5out/*
     cd run
-        ./assemblygen.py --dir codegen --seed $i
+        ./assemblygen.py --dir codegen --seed $i --inst add
         arm-linux-gcc -static codegen/assembly/${i}.s -o newgen.out
     cd ..
 
