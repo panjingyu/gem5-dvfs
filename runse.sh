@@ -33,7 +33,6 @@ do
     cd run
         cp ../m5out/powerlist.txt codegen/powerlist/${i}.txt
         chmod a-x codegen/powerlist/${i}.txt # powerlist bug (why is it executable??)
-        # echo ${i}:$(./getmaxpower.py) >> codegen/maxpower-${timestamp}.log
         ./parseinst.py ../log/runse-${i}.log
     cd ..
 

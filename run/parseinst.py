@@ -44,5 +44,5 @@ with open(log_name, 'r') as log_file:
         except StopIteration:
             break
 
-print(len(sim_blocks))
-print(len(plist))
+print("sim block number: {}".format(len(sim_blocks)))
+print("powerlist len:{}".format(len(plist)))

@@ -142,7 +142,7 @@ if __name__ == "__main__":
         elif opt in ("-d", "--dir"):
             os.chdir(val)
         elif opt in ("-i", "--inst"):
-            target_inst = opt
+            target_inst = val
             is_using_single_inst = target_inst in inst_dict
     assert not (target_inst is None and is_using_single_inst)
 
