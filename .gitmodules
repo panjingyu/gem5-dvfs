@@ -1,0 +1,3 @@
+[submodule "ext/gem5tomcpat"]
+	path = ext/gem5tomcpat
+	url = git@gitee.com:panjingyu/gem5tomcpat.git
