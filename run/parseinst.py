@@ -6,10 +6,22 @@ import numpy as np
 
 # TODO: cut off loading part of stats
 
-with open('../m5out/powerlist.txt', 'r') as powerlist:
-    plist = powerlist.readlines()
+with open('../m5out/power.txt', 'r') as power_file:
+    power_file_lines = power_file.readlines()
+    power_pattern = re.compile("(?<=power \= )-?\d+\.\d+") # FIXME:
+    cycle_pattern = re.compile("(?<=cycle \= )\d+")
+    plist = []
+    clist = []
+    for l in power_file_lines:
+        power_match = power_pattern.search(l)
+        if power_match:
+            plist.append(float(power_match.group(0)))
+            pass
+        cycle_match = cycle_pattern.search(l)
+        if cycle_match:
+            clist.append(int(cycle_match.group(0)))
+            pass
 
-plist_iter = iter(plist)
 log_name = sys.argv[1]
 op_blocks = []
 op_num_blocks = []
@@ -80,3 +92,16 @@ for i, eq_block in enumerate(op_num_blocks):
             # nontrivial item
             A[i, j] = eq_block[k]
 print(np.linalg.matrix_rank(A))
+
+assert len(plist) == len(clist) and len(plist) == num_stats_blocks
+b = np.asarray(plist) * np.asarray(clist)
+A_1 = np.c_[A, np.ones(len(A)).T]
+x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
+# print(x)
+# print(residuals)
+# print(rank)
+# print(s)
+op_energy = {}
+for i, k in enumerate(op_num_total):
+    op_energy[k] = x[i]
+print(op_energy)
