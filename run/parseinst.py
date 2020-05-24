@@ -8,41 +8,43 @@ with open('../m5out/powerlist.txt', 'r') as powerlist:
 
 plist_iter = iter(plist)
 log_name = sys.argv[1]
-sim_blocks = []
-other_info_lines = []
+op_blocks = []
 with open(log_name, 'r') as log_file:
     log_lines = log_file.readlines()
-    int_pattern = re.compile('\d+')
-    is_new_sim_block = False
+    op_pattern = re.compile("[a-z_]+") # find opcode
+    op_mark = "system.cpu T0"
+    dump_mark = "***** dumping stats *****"
+    new_op_block = []
     for l in log_lines:
-        try:
-            if 'info: Entering event queue' in l:
-                if is_new_sim_block:
-                    # last block has no instruction executed
-                    try:
-                        power = next(plist_iter)
-                    except StopIteration:
-                        power = -1
-                    sim_blocks.append((sim_num, "", power))
-                # process this block
-                sim_num_match = int_pattern.search(l)
-                if sim_num_match:
-                    sim_num = sim_num_match.group(0)
-                    is_new_sim_block = True
-                else:
-                    print("simulation block number not found!")
-                    exit(1)
-            elif is_new_sim_block:
-                is_new_sim_block = False
-                try:
-                    power = next(plist_iter)
-                except StopIteration:
-                    power = -1
-                sim_blocks.append((sim_num, l, power))
+        if dump_mark in l:
+            op_blocks.append(new_op_block)
+            new_op_block = []
+        if op_mark in l:
+            op_info = l.split(":")
+            op_match = op_pattern.search(op_info[3])
+            if op_match:
+                op_opcode = op_match.group(0)
+                new_op_block.append(op_opcode)
             else:
-                other_info_lines.append(l)
-        except StopIteration:
-            break
+                print("find opcode error:")
+                print(op_info)
+                exit(1)
+    op_blocks.append(new_op_block)
 
-print("sim block number: {}".format(len(sim_blocks)))
+num_stats_blocks = 0
+with open('../m5out/stats.txt', 'r') as stats_file:
+    stats_lines = stats_file.readlines()
+    for l in stats_lines:
+        if '---------- Begin Simulation Statistics ----------' in l:
+            num_stats_blocks += 1
+            
+
+print("stats blocks num:{}".format(num_stats_blocks))
 print("powerlist len:{}".format(len(plist)))
+print("op blocks num:{}".format(len(op_blocks)))
+
+with open("../m5out/op.txt", 'w') as opcode_file:
+    for block in op_blocks:
+        for op in block:
+            opcode_file.write(op + ' ')
+        opcode_file.write('\n')

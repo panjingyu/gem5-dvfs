@@ -692,7 +692,7 @@ def run(options, root, testsys, cpu_class):
         print "**** REAL SIMULATION ****"
     ## MBC: dump stats in stages 
     powerfreq=1.0
-    with open("../../parameter/parameter.config",'r') as param_file:
+    with open("parameter/parameter.config",'r') as param_file:
         param_lines = param_file.readlines()
         import re
         number_pattern = re.compile('\d+')
@@ -705,7 +705,6 @@ def run(options, root, testsys, cpu_class):
     print 'maxtick = %i' % maxtick
     tick_num = 500
     exit_cause = "simulate() limit reached"
-    phase = 1 
     while(exit_cause == "simulate() limit reached"):
         exit_event = m5.simulate(tick_num)
         exit_cause = exit_event.getCause()
@@ -716,13 +715,13 @@ def run(options, root, testsys, cpu_class):
         #print "tick_num = %d\n" %tick_num
         #print "curTick = %d\n" %m5.curTick()
         # if(m5.stats.stats_dict['system.cpu.numCycles'].total() > (powerfreq )):#
-            if (m5.stats.stats_dict['system.cpu.committedInsts'].total() > powerfreq):
+            if (m5.stats.stats_dict['system.cpu.numCycles'].total() > powerfreq):
                 # 2000 represent inst. numbers
-                print "dump \n"
-                print "***** number of simulated instructions is %d *****\n" %(m5.stats.stats_dict['sim_insts'].total() / phase)
-                m5.stats.dump()
+                print "***** dumping stats *****" # dump mark used in parsing
+                print "instruction committed: %d" % m5.stats.stats_dict["system.cpu.commit.committedInsts"].total()
+                print "ops committed: %d" % m5.stats.stats_dict["system.cpu.commit.committedOps"].total()
+                m5.stats.dump() # dump in stats.txt and power.txt
                 m5.stats.reset()
-                phase = phase + 1
     #######################################
 
         # If checkpoints are being taken, then the checkpoint instruction
