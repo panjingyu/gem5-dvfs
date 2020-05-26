@@ -8,7 +8,7 @@ import numpy as np
 
 with open('../m5out/power.txt', 'r') as power_file:
     power_file_lines = power_file.readlines()
-    power_pattern = re.compile("(?<=power \= )-?\d+\.\d+") # FIXME:
+    power_pattern = re.compile("(?<=power \= )-?\d+\.\d+")
     cycle_pattern = re.compile("(?<=cycle \= )\d+")
     plist = []
     clist = []

@@ -44,8 +44,7 @@
 
 #include "base/stats/info.hh"
 #include "base/stats/text.hh"
-#include "base/cast.hh"
-#include "base/misc.hh"
+#include "base/cast.hh"FormulaIn
 #include "base/str.hh"
 #include <complex>
 #include <string>
@@ -240,7 +239,7 @@ void ParamIn()
 }
 
 /**
- * input the formulas required for power estimatipn
+ * input the formulas required for power estimation
  * store every line in the vector line
  */
 void FormulaIn()
@@ -257,7 +256,7 @@ void FormulaIn()
     fin.close();
 }
 
-
+// used in Noise Estimation
 void xxprosess(double u, int m)
 {
 	int i;
@@ -296,9 +295,9 @@ double NoiseEstimation(double u, int m)
 	int a;
 	for (a = 0; a<jj; a++)
 		y += r[a] * xx1[a];
-        yy=y.real();
-        yy=abs(y);
-   return yy;
+    yy=y.real();
+    yy=abs(y);
+    return yy;
 }
 
 
@@ -313,8 +312,10 @@ double math(double op1, string opc, double op2)
     else if (opc == "-")     return op1-op2;
     else if (opc == "*")     return op1*op2;
     else {
-        if ((op1==0) | (op2==0)) return 0;
-        else                 return op1/op2;
+        if ((op1==0) | (op2==0))
+            return 0;
+        else
+            return op1/op2;
     }
 }
 
@@ -504,10 +505,10 @@ Text::begin()
 {
     if (Incounter == 0) {
         config.openfile("/home/pan/DVFS/gem5-dvfs/parameter/parameter.config");
-	CountIn();  // input the counter
+	    CountIn();  // input the counters i.e. Countname[] from counter_input_o3.txt
         ParamIn();  // input the parameters
         FormulaIn(); // input the formula
-	PRIn();
+	    PRIn();
         Incounter = 1;
     }
     CounterValue.clear();
