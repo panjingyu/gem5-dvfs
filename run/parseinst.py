@@ -11,7 +11,34 @@ def get_op_varcode(op_info):
     # op_info should be a string of micro op
     op_match = op_pattern.search(op_info)
     if op_match:
-        return op_match.group(0)
+        op_opcode = op_match.group(0)
+        op_info_splitted = op_info.split()
+        if len(op_info_splitted) == 1: # without operand
+            op_varcode = op_opcode
+        elif '[' in op_info: # operand includes any indirect addressing
+            op_varcode = op_opcode + "+ia"
+        # elif len()
+        else:
+            op_varcode = op_opcode
+            # ASR, LSL, LSR, ROR, and RRX are regarded as imm
+            def has_extended_imm(operand):
+                return    "ASR" in op_info_splitted[i] \
+                       or "LSL" in op_info_splitted[i] \
+                       or "LSR" in op_info_splitted[i] \
+                       or "ROR" in op_info_splitted[i] \
+                       or "RRX" in op_info_splitted[i]
+            for i in range(1, len(op_info_splitted)):
+                if '#' in op_info_splitted[i]:
+                    # direct imm
+                    op_varcode = op_varcode + "+i"
+                elif has_extended_imm(op_info_splitted[i]):
+                    # extended imm
+                    op_varcode = op_varcode + "+i"
+                    break
+                else:
+                    # must be reg
+                    op_varcode = op_varcode + "+r"
+        return op_varcode
     else:
         print("find opcode error:")
         print(op_info)
@@ -101,7 +128,8 @@ for i, eq_block in enumerate(op_num_blocks):
         if k in eq_block:
             # nontrivial item
             A[i, j] = eq_block[k]
-print(np.linalg.matrix_rank(A))
+print("rank of A[main part]:{}".format(np.linalg.matrix_rank(A[main_block_num:exit_block_num])))
+print(A[main_block_num:exit_block_num])
 
 assert len(plist) == len(clist) and len(plist) == num_stats_blocks
 b = np.asarray(plist) * np.asarray(clist)
