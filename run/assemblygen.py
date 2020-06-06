@@ -34,6 +34,7 @@ epilogue = \
 test_loop:
     cmp     r12, #num_loop   @ for loop condition
     blt     loop
+exit_mark:
     bx      lr               @ exit program
 .end
 '''

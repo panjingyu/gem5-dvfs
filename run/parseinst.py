@@ -6,6 +6,17 @@ import numpy as np
 
 # TODO: cut off loading part of stats
 
+op_pattern = re.compile("[a-z_]+") # find opcode
+def get_op_varcode(op_info):
+    # op_info should be a string of micro op
+    op_match = op_pattern.search(op_info)
+    if op_match:
+        return op_match.group(0)
+    else:
+        print("find opcode error:")
+        print(op_info)
+        exit(1)
+
 with open('../m5out/power.txt', 'r') as power_file:
     power_file_lines = power_file.readlines()
     power_pattern = re.compile("(?<=power \= )-?\d+\.\d+")
@@ -26,15 +37,13 @@ log_name = sys.argv[1]
 op_blocks = []
 op_num_blocks = []
 op_num_total = {}
+main_block_num = exit_block_num = 0
 with open(log_name, 'r') as log_file:
     log_lines = log_file.readlines()
-    op_pattern = re.compile("[a-z_]+") # find opcode
-    op_mark = "system.cpu T0"
-    dump_mark = "***** dumping stats *****"
     new_op_block = []
     new_op_block_num = {}
     for l in log_lines:
-        if dump_mark in l:
+        if "***** dumping stats *****" in l:
             # finish one stat block
             # add op block
             op_blocks.append(new_op_block)
@@ -48,20 +57,21 @@ with open(log_name, 'r') as log_file:
                 else:
                     op_num_total[k] = new_op_block_num[k]
             new_op_block_num = {}
-        elif op_mark in l:
-            op_info = l.split(":")
-            op_match = op_pattern.search(op_info[3])
-            if op_match:
-                op_opcode = op_match.group(0)
-                new_op_block.append(op_opcode)
-                if op_opcode not in new_op_block_num:
-                    new_op_block_num[op_opcode] = 1
-                else:
-                    new_op_block_num[op_opcode] += 1
+        elif "system.cpu T0" in l:
+            if "@main" in l:
+                assert main_block_num == 0
+                main_block_num = len(op_num_blocks)
+            elif "@exit_mark" in l:
+                assert exit_block_num == 0
+                exit_block_num = len(op_num_blocks)
+            op_info = l.split(":")[3]
+            op_varcode = get_op_varcode(op_info)
+            new_op_block.append(op_varcode)
+            if op_varcode not in new_op_block_num:
+                new_op_block_num[op_varcode] = 1
             else:
-                print("find opcode error:")
-                print(op_info)
-                exit(1)
+                new_op_block_num[op_varcode] += 1
+
     op_blocks.append(new_op_block)
     op_num_blocks.append(new_op_block_num)
 
@@ -95,13 +105,12 @@ print(np.linalg.matrix_rank(A))
 
 assert len(plist) == len(clist) and len(plist) == num_stats_blocks
 b = np.asarray(plist) * np.asarray(clist)
-A_1 = np.c_[A, np.ones(len(A)).T]
-x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
-# print(x)
-# print(residuals)
-# print(rank)
-# print(s)
+A = np.c_[A, np.asarray(clist).T]
+x, residuals, rank, s = np.linalg.lstsq(A[main_block_num:exit_block_num], b[main_block_num:exit_block_num], rcond=None)
 op_energy = {}
 for i, k in enumerate(op_num_total):
     op_energy[k] = x[i]
-print(op_energy)
+op_energy["cycle"] = x[-1]
+sorted_op_energy = {k: v for k, v in sorted(op_energy.items(), key=lambda item: item[1]) if v}
+print(sorted_op_energy)
+ 
