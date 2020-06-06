@@ -128,17 +128,33 @@ for i, eq_block in enumerate(op_num_blocks):
         if k in eq_block:
             # nontrivial item
             A[i, j] = eq_block[k]
-print("rank of A[main part]:{}".format(np.linalg.matrix_rank(A[main_block_num:exit_block_num])))
-print(A[main_block_num:exit_block_num])
+# print("rank of A[main part]:{}".format(np.linalg.matrix_rank(A[main_block_num:exit_block_num,:])))
+# print(A[main_block_num:exit_block_num,:])
 
+####### ENERGY SOLVING #######
 assert len(plist) == len(clist) and len(plist) == num_stats_blocks
 b = np.asarray(plist) * np.asarray(clist)
-A = np.c_[A, np.asarray(clist).T]
-x, residuals, rank, s = np.linalg.lstsq(A[main_block_num:exit_block_num], b[main_block_num:exit_block_num], rcond=None)
+A_energy = np.c_[A, np.asarray(clist).T]
+x_e, residuals_e, rank_e, s_e = np.linalg.lstsq(A_energy[main_block_num:exit_block_num,:], b[main_block_num:exit_block_num], rcond=None)
+print("main block num:{}".format(main_block_num))
+print("exit block num:{}".format(exit_block_num))
+print("effective eq num:{}".format(exit_block_num - main_block_num))
+print("rank of A_energy:{}".format(rank_e))
 op_energy = {}
 for i, k in enumerate(op_num_total):
-    op_energy[k] = x[i]
-op_energy["cycle"] = x[-1]
+    op_energy[k] = x_e[i]
+op_energy["cycle"] = x_e[-1]
 sorted_op_energy = {k: v for k, v in sorted(op_energy.items(), key=lambda item: item[1]) if v}
 print(sorted_op_energy)
- 
+
+
+####### CYCLE SOLVING #######
+b = np.asarray(clist)
+x_c, residuals_c, rank_c, s_c = np.linalg.lstsq(A[main_block_num:exit_block_num,:], b[main_block_num:exit_block_num], rcond=None)
+print("effective eq num:{}".format(exit_block_num - main_block_num))
+print("rank of A_cycle:{}".format(rank_e))
+op_cycle = {}
+for i, k in enumerate(op_num_total):
+    op_cycle[k] = x_c[i]
+sorted_op_cycle = {k: v for k, v in sorted(op_cycle.items(), key=lambda item: item[1]) if v}
+print(sorted_op_cycle)

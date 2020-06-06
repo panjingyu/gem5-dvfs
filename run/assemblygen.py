@@ -6,7 +6,7 @@ import getopt
 import re
 import random
 
-num_loop = 5 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
+num_loop = 30 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
 num_reg = 10
 loop_size = 12
 
