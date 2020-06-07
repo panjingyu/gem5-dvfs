@@ -6,11 +6,10 @@ import getopt
 import re
 import random
 
-num_loop = 30 # this parameter does not affect gem5 simulation time too much, since loading a program seems to take 14s
 num_reg = 10
-loop_size = 12
+payload_size = 600
 
-imm_frac = 0.2 # ratio of imm to total oprand1
+imm_frac = 0.5 # ratio of imm to total operand1
 
 is_using_single_inst = False
 target_inst = None
@@ -21,19 +20,11 @@ prologue = \
     .align	2
     .global	main
     .type	main, %function
-    .equ    num_loop, ''' + str(num_loop) + \
-'''
 main:                                        
-    mov     r12, #0 @ r12 = 0
-loop:
 '''
 
 epilogue = \
 '''
-    add     r12, r12, #1     @ Add 1 to r12
-test_loop:
-    cmp     r12, #num_loop   @ for loop condition
-    blt     loop
 exit_mark:
     bx      lr               @ exit program
 .end
@@ -93,7 +84,7 @@ def generate_inst():
 
 def write_program(file_to_write):
     program = []
-    for i in range(loop_size):
+    for i in range(payload_size):
         inst = generate_inst()
         file_to_write.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
 
