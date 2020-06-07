@@ -141,16 +141,17 @@ for i, eq_block in enumerate(op_blocks_main_part):
 ####### ENERGY SOLVING #######
 assert len(plist) == len(clist) and len(plist) == num_stats_blocks
 b_energy = (np.asarray(plist) * np.asarray(clist))[main_block_num+1:exit_block_num]
-A_with_cycles = np.c_[A, np.asarray(clist[main_block_num+1:exit_block_num]).T]
-x_e, residuals_e, rank_e, s_e = np.linalg.lstsq(A_with_cycles, b_energy, rcond=None)
+# A_with_cycles = np.c_[A, np.asarray(clist[main_block_num+1:exit_block_num]).T]
+# x_e, residuals_e, rank_e, s_e = np.linalg.lstsq(A_with_cycles, b_energy, rcond=None) # op variables include cycles
+x_e, residuals_e, rank_e, s_e = np.linalg.lstsq(A, b_energy, rcond=None) # cycles not included
 print("main block num:{}".format(main_block_num))
 print("exit block num:{}".format(exit_block_num))
 print("effective eq num:{}".format(len(b_energy))) 
-print("rank of A_with_cycles:{}".format(rank_e))
+print("rank of A:{}".format(rank_e))
 op_energy = {}
 for i, k in enumerate(op_num_main_part):
     op_energy[k] = x_e[i]
-op_energy["cycle"] = x_e[-1]
+# op_energy["cycle"] = x_e[-1]
 sorted_op_energy = {k: v for k, v in sorted(op_energy.items(), key=lambda item: item[1]) if v}
 print(sorted_op_energy)
 
@@ -165,3 +166,10 @@ for i, k in enumerate(op_num_main_part):
     op_cycle[k] = x_c[i]
 sorted_op_cycle = {k: v for k, v in sorted(op_cycle.items(), key=lambda item: item[1]) if v}
 print(sorted_op_cycle)
+
+####### POWER SOLUTION ########
+op_power = {}
+for op in op_cycle:
+    op_power[op] = op_energy[op] / op_cycle[op]
+sorted_op_power = {k: v for k, v in sorted(op_power.items(), key=lambda item: item[1]) if v}
+print(sorted_op_power)
