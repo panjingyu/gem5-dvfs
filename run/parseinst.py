@@ -3,64 +3,15 @@
 import sys
 import re
 import numpy as np
+import op_tools
 
-# TODO: cut off loading part of stats
-
-op_pattern = re.compile("[a-z_]+") # find opcode
-def get_op_varcode(op_info):
-    # op_info should be a string of micro op
-    op_match = op_pattern.search(op_info)
-    if op_match:
-        op_opcode = op_match.group(0)
-        op_info_splitted = op_info.split()
-        if len(op_info_splitted) == 1: # without operand
-            op_varcode = op_opcode
-        elif '[' in op_info: # operand includes any indirect addressing
-            op_varcode = op_opcode + "+ia"
-        # elif len()
-        else:
-            op_varcode = op_opcode
-            # ASR, LSL, LSR, ROR, and RRX are regarded as imm
-            def has_extended_imm(operand):
-                return    "ASR" in op_info_splitted[i] \
-                       or "LSL" in op_info_splitted[i] \
-                       or "LSR" in op_info_splitted[i] \
-                       or "ROR" in op_info_splitted[i] \
-                       or "RRX" in op_info_splitted[i]
-            for i in range(1, len(op_info_splitted)):
-                if '#' in op_info_splitted[i]:
-                    # direct imm
-                    op_varcode = op_varcode + "+i"
-                elif has_extended_imm(op_info_splitted[i]):
-                    # extended imm
-                    op_varcode = op_varcode + "+i"
-                    break
-                else:
-                    # must be reg
-                    op_varcode = op_varcode + "+r"
-        return op_varcode
-    else:
-        print("find opcode error:")
-        print(op_info)
-        exit(1)
-
-with open('../m5out/power.txt', 'r') as power_file:
-    power_file_lines = power_file.readlines()
-    power_pattern = re.compile("(?<=power \= )-?\d+\.\d+")
-    cycle_pattern = re.compile("(?<=cycle \= )\d+")
-    plist = []
-    clist = []
-    for l in power_file_lines:
-        power_match = power_pattern.search(l)
-        if power_match:
-            plist.append(float(power_match.group(0)))
-            pass
-        cycle_match = cycle_pattern.search(l)
-        if cycle_match:
-            clist.append(int(cycle_match.group(0)))
-            pass
+plist = op_tools.get_from_power_txt('power', '../m5out/power.txt')
+clist = op_tools.get_from_power_txt('cycle', '../m5out/power.txt')
 
 log_name = sys.argv[1]
+op_priori_depth = 4 # should be near pipeline stage num
+op_chain = op_tools.op_queue([], op_priori_depth)
+assert len(op_chain) == 0
 op_blocks = []
 op_num_blocks = []
 op_num_total = {}
@@ -84,21 +35,21 @@ with open(log_name, 'r') as log_file:
                 else:
                     op_num_total[k] = new_op_block_num[k]
             new_op_block_num = {}
-        elif "system.cpu T0" in l:
-            if "@main " in l: # space at the tail is necessary
+        elif "system.cpu T0" in l: ##### IS micro op!!
+            if "@main " in l: # space at the tail is necessary, to ensure it's the excact @main
                 assert main_block_num == 0
                 main_block_num = len(op_num_blocks)
             elif "@exit_mark " in l:
                 assert exit_block_num == 0
                 exit_block_num = len(op_num_blocks)
-            op_info = l.split(":")[3]
-            op_varcode = get_op_varcode(op_info)
+            op_info = l.split(":")[3] # find op info part in this gem5 log line
+            op_varcode = op_tools.get_op_varcode(op_info, op_chain)
+            assert len(op_chain) > 0
             new_op_block.append(op_varcode)
             if op_varcode not in new_op_block_num:
                 new_op_block_num[op_varcode] = 1
             else:
                 new_op_block_num[op_varcode] += 1
-
     op_blocks.append(new_op_block)
     op_num_blocks.append(new_op_block_num)
 
