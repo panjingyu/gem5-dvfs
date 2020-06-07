@@ -72,15 +72,15 @@ def generate_inst():
     else: #generate opcode randomly
         opcode   = random.randint(0, num_inst_types-1)
     dest_reg = random.randint(0, num_reg-1)
-    oprand0  = random.randint(0, num_reg-1) # num_reg represents immediate
+    operand0  = random.randint(0, num_reg-1) # num_reg represents immediate
     if insts[opcode] in ['mul']:
-        # in this case, no imm is allowed in oprand1
-        oprand1 = random.randint(0, num_reg-1)
+        # in this case, no imm is allowed in operand1
+        operand1 = random.randint(0, num_reg-1)
     else:
-        oprand1 = random.randint(0, round(num_reg/(1-imm_frac)))
-        if oprand1 > num_reg:
-            oprand1 = num_reg
-    return [opcode, dest_reg, oprand0, oprand1]
+        operand1 = random.randint(0, round(num_reg/(1-imm_frac)))
+        if operand1 > num_reg:
+            operand1 = num_reg
+    return [opcode, dest_reg, operand0, operand1]
 
 def write_program(file_to_write):
     program = []
@@ -91,30 +91,30 @@ def write_program(file_to_write):
 def get_imm_oprand(opcode):
     if opcode in inst:
         if opcode in ('lsl', 'lsr', 'asl', 'ror'):
-            return random.randint(0, 32)
+            return random.randint(0, 31)
         else:
             return random.randint(0, 255)
     else:
         print('opcode not found!')
         sys.exit(1)
 
-def gen_operand(opcode, oprand0, oprand1=None):
+def gen_operand(opcode, operand0, operand1=None):
     # opcode will be used when fp insts are involved
-    if oprand1 is None:
+    if operand1 is None:
         # single oprand case
-        if oprand0 >= num_reg:
+        if operand0 >= num_reg:
             # use immediate
-            oprand0 = get_imm_oprand(opcode)
-            return '#{}'.format(oprand0)
+            operand0 = get_imm_oprand(opcode)
+            return '#{}'.format(operand0)
         else:
-            return 'r{}'.format(oprand0)
+            return 'r{}'.format(operand0)
     else:
         # double oprand case
-        if oprand1 >= num_reg:
-            oprand1 = get_imm_oprand(opcode)
-            return ['r{}'.format(oprand0), '#{}'.format(oprand1)]
+        if operand1 >= num_reg:
+            operand1 = get_imm_oprand(opcode)
+            return ['r{}'.format(operand0), '#{}'.format(operand1)]
         else:
-            return ['r{}'.format(oprand0), 'r{}'.format(oprand1)]
+            return ['r{}'.format(operand0), 'r{}'.format(operand1)]
 
 
 if __name__ == "__main__":
@@ -157,9 +157,9 @@ if __name__ == "__main__":
                 oprand = gen_operand(opcode, int(inst_code[2]))
                 inst = inst.format('r'+inst_code[1], oprand)
             elif len(inst) == oprand_size[2]:
-                [oprand0, oprand1] = gen_operand(opcode, int(inst_code[2]), \
+                [operand0, operand1] = gen_operand(opcode, int(inst_code[2]), \
                                                          int(inst_code[3]))
-                inst = inst.format('r'+inst_code[1], oprand0, oprand1)
+                inst = inst.format('r'+inst_code[1], operand0, operand1)
             else:
                 print('oprand error!')
                 sys.exit(1)

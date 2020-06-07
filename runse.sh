@@ -9,7 +9,7 @@ do
 
     rm m5out/*
     cd run
-        ./assemblygen.py --dir codegen --seed $i --inst add
+        ./assemblygen.py --dir codegen --seed $i
         arm-linux-gcc -static codegen/assembly/${i}.s -o newgen.out
     cd ..
 
@@ -31,10 +31,6 @@ do
         # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
 
     paplay /usr/share/sounds/ubuntu/stereo/system-ready.ogg # notification ring of job done
-    cd run
-        cp ../m5out/powerlist.txt codegen/powerlist/${i}.txt
-        chmod a-x codegen/powerlist/${i}.txt # powerlist bug (why is it executable??)
-        ./parseinst.py ../log/runse-${i}.log
-    cd ..
+    ./run/parseinst.py ./log/runse-${i}.log
 
 done
