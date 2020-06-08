@@ -22,13 +22,14 @@ do
     # use default peripheral parameters
     # add debug flag Exec to see exact instuction in execution
 
-    ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
+    time (./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
         --debug-flags=Exec \
         configs/example/se.py \
         -c $CMD \
         --cpu-type=DerivO3CPU \
         --caches \
         # --l1d_size=32Kb --l1i_size=32Kb --l2cache --l2_size=1024Kb
+    )
 
     paplay /usr/share/sounds/ubuntu/stereo/system-ready.ogg # notification ring of job done
     ./run/parseinst.py ./log/runse-${i}.log

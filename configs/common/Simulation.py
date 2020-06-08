@@ -703,7 +703,7 @@ def run(options, root, testsys, cpu_class):
     # powerfreq = powerfreq * 1000000000 / 15 * 20
     print 'powerfreq = %f' % powerfreq
     print 'maxtick = %i' % maxtick
-    tick_num = 500
+    tick_num = 1000
     exit_cause = "simulate() limit reached"
     while(exit_cause == "simulate() limit reached"):
         exit_event = m5.simulate(tick_num)

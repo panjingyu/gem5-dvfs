@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 600
+payload_size = 700000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -31,8 +31,8 @@ exit_mark:
 '''
 
 inst_dict = {
-    'push': '    push   {{{0}}}\n',
-    'pop':  '    pop    {{{0}}}\n',
+    # 'push': '    push   {{{0}}}\n', # FIXME: remove push & pop
+    # 'pop':  '    pop    {{{0}}}\n',
     'mov':  '    mov    {},\t{}  \n',
     'cmp':  '    cmp    {},\t{}  \n',
     # 'ldr':  '    ldr    {},\t{}  \n',
@@ -52,11 +52,6 @@ inst_dict = {
     'orr':  '    orr    {},\t{},\t{}\n',
     'eor':  '    eor    {},\t{},\t{}\n',
 }
-oprand_size = [
-    len(inst_dict['push']),
-    len(inst_dict['mov']),
-    len(inst_dict['add'])
-]
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
 
@@ -101,7 +96,7 @@ def get_imm_oprand(opcode):
 def gen_operand(opcode, operand0, operand1=None):
     # opcode will be used when fp insts are involved
     if operand1 is None:
-        # single oprand case
+        # single operand case
         if operand0 >= num_reg:
             # use immediate
             operand0 = get_imm_oprand(opcode)
@@ -109,7 +104,7 @@ def gen_operand(opcode, operand0, operand1=None):
         else:
             return 'r{}'.format(operand0)
     else:
-        # double oprand case
+        # double operand case
         if operand1 >= num_reg:
             operand1 = get_imm_oprand(opcode)
             return ['r{}'.format(operand0), '#{}'.format(operand1)]
@@ -151,17 +146,17 @@ if __name__ == "__main__":
             inst_code = re.findall('\d+', line)
             opcode = insts[int(inst_code[0])]
             inst = inst_dict[opcode]
-            if len(inst) == oprand_size[0]:
+            if 'push' in inst_dict and len(inst) == len(inst_dict['push']):
                 inst = inst.format('r'+inst_code[1])
-            elif len(inst) == oprand_size[1]:
-                oprand = gen_operand(opcode, int(inst_code[2]))
-                inst = inst.format('r'+inst_code[1], oprand)
-            elif len(inst) == oprand_size[2]:
+            elif 'mov' in inst_dict and len(inst) == len(inst_dict['mov']):
+                operand = gen_operand(opcode, int(inst_code[2]))
+                inst = inst.format('r'+inst_code[1], operand)
+            elif 'add' in inst_dict and len(inst) == len(inst_dict['add']):
                 [operand0, operand1] = gen_operand(opcode, int(inst_code[2]), \
-                                                         int(inst_code[3]))
+                                                           int(inst_code[3]))
                 inst = inst.format('r'+inst_code[1], operand0, operand1)
             else:
-                print('oprand error!')
+                print('operand error!')
                 sys.exit(1)
             program_lines.append(inst)
             
