@@ -7,17 +7,19 @@ import op_tools
 
 print("Start parsing insts...")
 
-plist = op_tools.get_from_power_txt('power', 'm5out/power.txt')
-clist = op_tools.get_from_power_txt('cycle', 'm5out/power.txt')
+log_dir = sys.argv[1]
+m5out_dir = sys.argv[2]
 
-log_name = sys.argv[1]
+plist = op_tools.get_from_power_txt('power', m5out_dir + "power.txt")
+clist = op_tools.get_from_power_txt('cycle', m5out_dir + "power.txt")
+
 op_priori_depth = 4 # should be near pipeline stage num
 op_chain = op_tools.op_queue([], op_priori_depth)
 assert len(op_chain) == 0
 op_num_blocks = []
 op_num_total = {}
 main_block_num = exit_block_num = 0
-with open(log_name, 'r') as log_file:
+with open(log_dir, 'r') as log_file:
     log_lines = log_file.readlines()
     new_op_block_num = {}
     for l in log_lines:
@@ -49,7 +51,7 @@ with open(log_name, 'r') as log_file:
     op_num_blocks.append(new_op_block_num)
 
 num_stats_blocks = 0
-with open('m5out/stats.txt', 'r') as stats_file:
+with open(m5out_dir + 'stats.txt', 'r') as stats_file:
     stats_lines = stats_file.readlines()
     for l in stats_lines:
         if '---------- Begin Simulation Statistics ----------' in l:
