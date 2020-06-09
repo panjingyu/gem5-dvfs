@@ -83,7 +83,7 @@ def write_program(file_to_write):
         inst = generate_inst()
         file_to_write.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
 
-def get_imm_oprand(opcode):
+def get_imm_operand(opcode):
     if opcode in inst:
         if opcode in ('lsl', 'lsr', 'asl', 'ror'):
             return random.randint(0, 31)
@@ -99,14 +99,14 @@ def gen_operand(opcode, operand0, operand1=None):
         # single operand case
         if operand0 >= num_reg:
             # use immediate
-            operand0 = get_imm_oprand(opcode)
+            operand0 = get_imm_operand(opcode)
             return '#{}'.format(operand0)
         else:
             return 'r{}'.format(operand0)
     else:
         # double operand case
         if operand1 >= num_reg:
-            operand1 = get_imm_oprand(opcode)
+            operand1 = get_imm_operand(opcode)
             return ['r{}'.format(operand0), '#{}'.format(operand1)]
         else:
             return ['r{}'.format(operand0), 'r{}'.format(operand1)]
