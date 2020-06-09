@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 700000
+payload_size = 300000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -31,14 +31,14 @@ exit_mark:
 '''
 
 inst_dict = {
-    # 'push': '    push   {{{0}}}\n', # FIXME: remove push & pop
+    # 'push': '    push   {{{0}}}\n',       # Tier 0
     # 'pop':  '    pop    {{{0}}}\n',
-    'mov':  '    mov    {},\t{}  \n',
+    'mov':  '    mov    {},\t{}  \n',       # Tier 1
     'cmp':  '    cmp    {},\t{}  \n',
     # 'ldr':  '    ldr    {},\t{}  \n',
     # 'str':  '    str    {},\t{}  \n',
     ## arithmetic opcodes
-    'add':  '    add    {},\t{},\t{}\n',
+    'add':  '    add    {},\t{},\t{}\n',    # Tier 2
     'sub':  '    sub    {},\t{},\t{}\n',
     'mul':  '    mul    {},\t{},\t{}\n',
     # 'div':  '    div    {},\t{},\t{}\n',
@@ -46,11 +46,11 @@ inst_dict = {
     'lsl':  '    lsl    {},\t{},\t{}\n',
     'lsr':  '    lsr    {},\t{},\t{}\n',
     # 'asr':  '    asr    {},\t{},\t{}\n',
-    'ror':  '    ror    {},\t{},\t{}\n',
+    # 'ror':  '    ror    {},\t{},\t{}\n',
     ## bitwise logic opcodes
     'and':  '    and    {},\t{},\t{}\n',
-    'orr':  '    orr    {},\t{},\t{}\n',
-    'eor':  '    eor    {},\t{},\t{}\n',
+    # 'orr':  '    orr    {},\t{},\t{}\n',
+    # 'eor':  '    eor    {},\t{},\t{}\n',
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)

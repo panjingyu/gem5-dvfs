@@ -3,6 +3,7 @@
 import sys
 import gc
 import numpy as np
+import json
 import op_tools
 
 print("Start parsing insts...")
@@ -13,7 +14,7 @@ m5out_dir = sys.argv[2]
 plist = op_tools.get_from_power_txt('power', m5out_dir + "power.txt")
 clist = op_tools.get_from_power_txt('cycle', m5out_dir + "power.txt")
 
-op_priori_depth = 4 # should be near pipeline stage num
+op_priori_depth = 3 # should be near pipeline stage num
 op_chain = op_tools.op_queue([], op_priori_depth)
 assert len(op_chain) == 0
 op_num_blocks = []
@@ -64,8 +65,8 @@ print(len(op_num_blocks))
 
 assert num_stats_blocks == len(op_num_blocks) or num_stats_blocks == len(op_num_blocks) - 1 # latter stands for gem5 faulty exit case
 op_blocks_main_part = op_num_blocks[main_block_num+1:exit_block_num]
-del op_num_blocks
-gc.collect()
+# del op_num_blocks
+# gc.collect()
 
 eq_num = len(op_blocks_main_part)
 op_num_main_part = {}
@@ -126,3 +127,6 @@ sorted_op_power = {k: v for k, v in sorted(op_power.items(), key=lambda item: it
 # print(sorted_op_power)
 op_max_power = max(sorted_op_power, key=sorted_op_power.get)
 print("{} by {}".format(op_max_power, sorted_op_power[op_max_power]))
+
+with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-solution.json", "w") as solution_file:
+    solution_file.write(json.dumps(sorted_op_power))

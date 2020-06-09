@@ -34,3 +34,4 @@ log/*
 /run/codegen
 /.hg/hgrc
 xx.txt
+*.json 
