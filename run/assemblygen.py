@@ -68,15 +68,24 @@ inst_dict = {
     # 'sub':  '    sub    {},\t{},\t{}\n',
     'mul':  '    mul    {},\t{},\t{}\n',
     ## bitwise shift/rotation opcodes
-    'lsl':  '    lsl    {},\t{},\t{}\n',
+    # 'lsl':  '    lsl    {},\t{},\t{}\n',
     # 'lsr':  '    lsr    {},\t{},\t{}\n',
     # 'asr':  '    asr    {},\t{},\t{}\n',
-    'ror':  '    ror    {},\t{},\t{}\n',
+    # 'ror':  '    ror    {},\t{},\t{}\n',
     ## bitwise logic opcodes
     # 'and':  '    and    {},\t{},\t{}\n',
     # 'orr':  '    orr    {},\t{},\t{}\n',
     'eor':  '    eor    {},\t{},\t{}\n',
-    ## TODO: float opcodes
+    ## float opcodes
+    'flds':     'flds       s15, [fp, #-12] \n',
+    'fsts':     'fsts       s15, [fp, #-12] \n',
+    'fcvtds':   'fcvtds     d6, s15         \n',
+    'fcvtsd':   'fcvtsd     s15, d7         \n',
+    'fldd':     'fldd       d7, .Lfloat0    \n',
+    'faddd':    'faddd      d7, d6, d7      \n',
+    'fsubd':    'fsubd      d7, d6, d7      \n',
+    'fmuld':    'fmuld      d7, d6, d7      \n',
+    'fdivd':    'fdivd      d7, d6, d7      \n',
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
@@ -188,6 +197,9 @@ if __name__ == "__main__":
                 [operand0, operand1] = gen_operand(opcode, int(inst_code[2]), \
                                                            int(inst_code[3]))
                 inst = inst.format('r'+inst_code[1], operand0, operand1)
+            elif inst[0] == 'f':
+                # float ops
+                pass
             else:
                 print('operand error!')
                 sys.exit(1)
