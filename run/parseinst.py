@@ -128,5 +128,8 @@ sorted_op_power = {k: v for k, v in sorted(op_power.items(), key=lambda item: it
 op_max_power = max(sorted_op_power, key=sorted_op_power.get)
 print("{} by {}".format(op_max_power, sorted_op_power[op_max_power]))
 
-with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-solution.json", "w") as solution_file:
-    solution_file.write(json.dumps(sorted_op_power))
+with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-power.json", "w") as power_solution_file:
+    power_solution_file.write(json.dumps(sorted_op_power))
+
+with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-cycle.json", "w") as cycle_solution_file:
+    cycle_solution_file.write(json.dumps(sorted_op_cycle))
