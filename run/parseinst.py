@@ -58,7 +58,7 @@ with open(m5out_dir + 'stats.txt', 'r') as stats_file:
         if '---------- Begin Simulation Statistics ----------' in l:
             num_stats_blocks += 1
 
-if sys.argv[3] == "--max-power-only":
+if "--max-power-only" in sys.argv:
     print("max power={}".format(max([float(x) for x in plist[main_block_num+1:exit_block_num]])))
     exit(0)
 

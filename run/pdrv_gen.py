@@ -50,24 +50,29 @@ for op_var in op_vars:
     assert "ia" not in op # indirect addressing not supported
     inst = None
     inst_template = assemblygen.inst_dict[op[0]]
-    is_using_imm = 'i' in op
-    def gen_reg(num_reg):
-        return 'r'+str(random.randint(0,num_reg-1))
-    def gen_imm(opcode):
-        return '#'+str(assemblygen.get_imm_operand(opcode))
-    if len(inst_template) == len(assemblygen.inst_dict['mov']):
-        if is_using_imm:
-            inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_imm(op[0]))
-        else:
-            inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg))
-    elif len(inst_template) == len(assemblygen.inst_dict['add']):
-        if is_using_imm:
-            inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg), gen_imm(op[0]))
-        else:
-            inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg))
+    if '{}' not in inst_template: # exclude hard-wired cases like float ops
+        inst = inst_template
+    elif op[0] in ('ldr', 'str'):
+        inst = inst_template.format(gen_reg(assemblygen.num_reg), '[fp, #-8]')
     else:
-        print("unsupported op encountered!")
-        exit(1)
+        is_using_imm = 'i' in op
+        def gen_reg(num_reg):
+            return 'r'+str(random.randint(0,num_reg-1))
+        def gen_imm(opcode):
+            return '#'+str(assemblygen.get_imm_operand(opcode))
+        if len(inst_template) == len(assemblygen.inst_dict['mov']):
+            if is_using_imm:
+                inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_imm(op[0]))
+            else:
+                inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg))
+        elif len(inst_template) == len(assemblygen.inst_dict['add']):
+            if is_using_imm:
+                inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg), gen_imm(op[0]))
+            else:
+                inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg))
+        else:
+            print("unsupported op encountered!")
+            exit(1)
     assert inst is not None
     op_lines.append(inst)
 

@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 300
+payload_size = 70000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -34,7 +34,10 @@ prologue = \
 
 	@ args = 0, pretend = 0, frame = 120
 	@ frame_needed = 1, uses_anonymous_args = 0
-
+.Lfloat0:
+	.word   -1717986918
+	.word	1070176665
+	.word	1063281229
 main:                                        
 	str	fp, [sp, #-4]!
     add	fp, sp, #0
@@ -42,6 +45,7 @@ main:
 	mov	r3, #0
 	str	r3, [fp, #-8]
 	ldr	r3, [fp, #-8]
+    fldd       d7, .Lfloat0
 start_mark:
 '''
 
@@ -49,10 +53,6 @@ epilogue = \
 '''
 exit_mark:
     bx      lr               @ exit program
-.Lfloat0:
-	.word   -1717986918
-	.word	1070176665
-	.word	1063281229
 .end
 '''
 
@@ -77,15 +77,15 @@ inst_dict = {
     # 'orr':  '    orr    {},\t{},\t{}\n',
     'eor':  '    eor    {},\t{},\t{}\n',
     ## float opcodes
-    'flds':     'flds       s15, [fp, #-12] \n',
-    'fsts':     'fsts       s15, [fp, #-12] \n',
-    'fcvtds':   'fcvtds     d6, s15         \n',
-    'fcvtsd':   'fcvtsd     s15, d7         \n',
-    'fldd':     'fldd       d7, .Lfloat0    \n',
-    'faddd':    'faddd      d7, d6, d7      \n',
-    'fsubd':    'fsubd      d7, d6, d7      \n',
-    'fmuld':    'fmuld      d7, d6, d7      \n',
-    'fdivd':    'fdivd      d7, d6, d7      \n',
+    'flds':     '   flds       s15, [fp, #-12] \n',
+    'fsts':     '   fsts       s15, [fp, #-12] \n',
+    'fcvtds':   '   fcvtds     d6, s15         \n',
+    'fcvtsd':   '   fcvtsd     s15, d7         \n',
+    # 'fldd':     '   fldd       d7, .Lfloat0    \n',
+    'faddd':    '   faddd      d7, d6, d7      \n',
+    'fsubd':    '   fsubd      d7, d6, d7      \n',
+    'fmuld':    '   fmuld      d7, d6, d7      \n',
+    'fdivd':    '   fdivd      d7, d6, d7      \n',
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
                 [operand0, operand1] = gen_operand(opcode, int(inst_code[2]), \
                                                            int(inst_code[3]))
                 inst = inst.format('r'+inst_code[1], operand0, operand1)
-            elif inst[0] == 'f':
+            elif opcode[0] == 'f':
                 # float ops
                 pass
             else:

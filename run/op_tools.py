@@ -64,8 +64,10 @@ def get_op_varcode(op_info:str, op_chain:op_queue) -> str:
         op_info_splitted = op_info.split()
         if len(op_info_splitted) == 1: # without operand
             op_varcode = op_opcode
-        elif '[' in op_info: # operand includes any indirect addressing
-            op_varcode = op_opcode + "+ia"
+        elif op_opcode in ('ldr', 'str', 'flds', 'fsts', 'fcvtds', 'fcvtsd', 'fldd', 'faddd', 'fsubd', 'fmuld', 'fdivd'):
+            op_varcode = op_opcode
+        # elif '[' in op_info: # operand includes any indirect addressing
+        #     op_varcode = op_opcode + "+ia"
         # elif len()
         else:
             op_varcode = op_opcode
