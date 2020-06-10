@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 300000
+payload_size = 300
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -16,41 +16,67 @@ target_inst = None
 
 
 prologue = \
-'''.Ltext0:
-    .align	2
-    .global	main
-    .type	main, %function
+''' .arch armv7-a
+	.eabi_attribute 27, 3
+	.fpu vfp
+	.eabi_attribute 20, 1
+	.eabi_attribute 21, 1
+	.eabi_attribute 23, 3
+	.eabi_attribute 24, 1
+	.eabi_attribute 25, 1
+	.eabi_attribute 26, 2
+	.eabi_attribute 30, 6
+	.eabi_attribute 18, 4
+.Ltext0:
+	.align	2
+	.global	main
+	.type	main, %function
+
+	@ args = 0, pretend = 0, frame = 120
+	@ frame_needed = 1, uses_anonymous_args = 0
+
 main:                                        
+	str	fp, [sp, #-4]!
+    add	fp, sp, #0
+    sub	sp, sp, #12
+	mov	r3, #0
+	str	r3, [fp, #-8]
+	ldr	r3, [fp, #-8]
+start_mark:
 '''
 
 epilogue = \
 '''
 exit_mark:
     bx      lr               @ exit program
+.Lfloat0:
+	.word   -1717986918
+	.word	1070176665
+	.word	1063281229
 .end
 '''
 
 inst_dict = {
-    # 'push': '    push   {{{0}}}\n',       # Tier 0
+    # 'push': '    push   {{{0}}}\n',       ############ Tier 0
     # 'pop':  '    pop    {{{0}}}\n',
-    'mov':  '    mov    {},\t{}  \n',       # Tier 1
+    'mov':  '    mov    {},\t{}  \n',       ############ Tier 1 -> single operand
     'cmp':  '    cmp    {},\t{}  \n',
-    # 'ldr':  '    ldr    {},\t{}  \n',
-    # 'str':  '    str    {},\t{}  \n',
+    'ldr':  '    ldr    {},\t{}  \n',
+    'str':  '    str    {},\t{}  \n',
     ## arithmetic opcodes
-    'add':  '    add    {},\t{},\t{}\n',    # Tier 2
-    'sub':  '    sub    {},\t{},\t{}\n',
+    'add':  '    add    {},\t{},\t{}\n',    ############ Tier 2 -> double operands
+    # 'sub':  '    sub    {},\t{},\t{}\n',
     'mul':  '    mul    {},\t{},\t{}\n',
-    # 'div':  '    div    {},\t{},\t{}\n',
     ## bitwise shift/rotation opcodes
     'lsl':  '    lsl    {},\t{},\t{}\n',
-    'lsr':  '    lsr    {},\t{},\t{}\n',
+    # 'lsr':  '    lsr    {},\t{},\t{}\n',
     # 'asr':  '    asr    {},\t{},\t{}\n',
-    # 'ror':  '    ror    {},\t{},\t{}\n',
+    'ror':  '    ror    {},\t{},\t{}\n',
     ## bitwise logic opcodes
-    'and':  '    and    {},\t{},\t{}\n',
+    # 'and':  '    and    {},\t{},\t{}\n',
     # 'orr':  '    orr    {},\t{},\t{}\n',
-    # 'eor':  '    eor    {},\t{},\t{}\n',
+    'eor':  '    eor    {},\t{},\t{}\n',
+    ## TODO: float opcodes
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
@@ -75,6 +101,8 @@ def generate_inst():
         operand1 = random.randint(0, round(num_reg/(1-imm_frac)))
         if operand1 > num_reg:
             operand1 = num_reg
+    while operand0 == operand1:
+        operand1 = random.randint(0, num_reg-1)
     return [opcode, dest_reg, operand0, operand1]
 
 def write_program(file_to_write):
@@ -84,7 +112,7 @@ def write_program(file_to_write):
         file_to_write.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
 
 def get_imm_operand(opcode):
-    if opcode in inst:
+    if opcode in insts:
         if opcode in ('lsl', 'lsr', 'asl', 'ror'):
             return random.randint(0, 31)
         else:
@@ -95,21 +123,26 @@ def get_imm_operand(opcode):
 
 def gen_operand(opcode, operand0, operand1=None):
     # opcode will be used when fp insts are involved
+    imm_temp = '#{}'
+    if opcode in ('ldr', 'str'):
+        return '[fp, #-8]'
+    else:
+        r_temp = 'r{}'
     if operand1 is None:
         # single operand case
         if operand0 >= num_reg:
             # use immediate
             operand0 = get_imm_operand(opcode)
-            return '#{}'.format(operand0)
+            return imm_temp.format(operand0)
         else:
-            return 'r{}'.format(operand0)
+            return r_temp.format(operand0)
     else:
         # double operand case
         if operand1 >= num_reg:
             operand1 = get_imm_operand(opcode)
-            return ['r{}'.format(operand0), '#{}'.format(operand1)]
+            return [r_temp.format(operand0), imm_temp.format(operand1)]
         else:
-            return ['r{}'.format(operand0), 'r{}'.format(operand1)]
+            return [r_temp.format(operand0), r_temp.format(operand1)]
 
 
 if __name__ == "__main__":

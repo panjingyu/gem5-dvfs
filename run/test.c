@@ -2,9 +2,12 @@ int main()
 {
     // init variables
     int i, j;
-    double x, y;
+    double x, y, z;
+    #define MAX 10
+    double a[MAX];
 
-    for (int iter = 0; iter < 10; ++iter)
+    int k = i / j;
+    for (int iter = 0; iter < MAX; ++iter)
     {
         // main loop
         i += j;
@@ -12,11 +15,20 @@ int main()
         x *= y;
         if (x)
         {
-            y /= x;    
+            y /= x * z;    
         }
         else
         {
-            x = y + 0.001;
+            x = y + 0.002 * z;
+        }
+        aa:
+        if (iter > 0)
+        {
+            a[iter] *= x + y;
+        }
+        else
+        {
+            a[iter] = x - y;
         }
     }
     

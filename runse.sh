@@ -16,6 +16,7 @@ do
     # select program to execute
 
     # CMD=tests/test-progs/hello/bin/arm/linux/hello
+    # CMD=run/testout.out
     CMD=run/newgen.out
 
 

@@ -8,8 +8,8 @@ import json
 import assemblygen
 import op_tools
 
-solution_dir = "10k-solution.json"
-solution_len = 100
+solution_dir = "solution/43k-solution.json"
+solution_len = 1000
 
 with open(solution_dir, 'r') as solution_file:
     op_power = json.loads(solution_file.readline()) # load op power as dict
@@ -27,21 +27,28 @@ for i in range(solution_len):
     op_priori = op_chain.get_current_chain() + "->"
     next_op_max_power = None
     for k in op_keys:
-        if op_priori in k:
+        if k.find(op_priori) == 0:
             if next_op_max_power is None or op_power[k] > next_op_max_power:
-                    next_op_max_power = op_power[k]
-                    next_op = k.strip(op_priori)
+                next_op_max_power = op_power[k]
+                next_ops = k[len(op_priori):]
     # after every key searched
-    assert next_op_max_power is not None
-    assert not op_chain.is_full() and "->" not in next_op
-    op_chain.enqueue(next_op)
+    if next_op_max_power is not None:
+        for next_op in next_ops.split("->"):
+            assert not op_chain.is_full()
+            op_chain.enqueue(next_op)
 
 # TODO: convert op vars to op lines
 op_lines = []
 for op_var in op_vars:
     op = op_var.split('+')
-    assert op[0] in assemblygen.inst_dict
+    if op[0] not in assemblygen.inst_dict:
+        if op[0] == "cmps":
+            op[0] = "cmp"
+        else:
+            print(op)
+            exit(0)
     assert "ia" not in op # indirect addressing not supported
+    inst = None
     inst_template = assemblygen.inst_dict[op[0]]
     is_using_imm = 'i' in op
     def gen_reg(num_reg):
@@ -61,6 +68,7 @@ for op_var in op_vars:
     else:
         print("unsupported op encountered!")
         exit(1)
+    assert inst is not None
     op_lines.append(inst)
 
 with open('pv.s','w') as f:

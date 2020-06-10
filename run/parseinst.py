@@ -37,7 +37,7 @@ with open(log_dir, 'r') as log_file:
                     op_num_total[k] = new_op_block_num[k]
             new_op_block_num = {}
         elif "system.cpu T0" in l: ##### IS micro op!!
-            if "@main " in l: # space at the tail is necessary, to ensure it's the excact @main
+            if "@start_mark " in l: # space at the tail is necessary, to ensure it's the excact @main
                 assert main_block_num == 0
                 main_block_num = len(op_num_blocks)
             elif "@exit_mark " in l:
@@ -57,6 +57,10 @@ with open(m5out_dir + 'stats.txt', 'r') as stats_file:
     for l in stats_lines:
         if '---------- Begin Simulation Statistics ----------' in l:
             num_stats_blocks += 1
+
+if sys.argv[3] == "--max-power-only":
+    print("max power={}".format(max([float(x) for x in plist[main_block_num+1:exit_block_num]])))
+    exit(0)
 
 print("stats blocks num:{}".format(num_stats_blocks))
 print("powerlist len:{}".format(len(plist)))
