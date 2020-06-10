@@ -8,7 +8,19 @@ import json
 import assemblygen
 import op_tools
 
-solution_dir = "solution/43k-solution.json"
+adjust_dict = {
+    'cmps': 'cmp',
+    'vldr': 'flds',
+    'vstr': 'fsts',
+    'vcvt': 'fcvtds/fcvtsd',
+    'vadd': 'faddd',
+    'vsub': 'fsubd',
+    'vmul': 'fmuld',
+    'vdiv': 'fdivd',
+}
+inst_dict = assemblygen.inst_dict_full
+
+solution_dir = "solution/int-only/43k-solution.json"
 solution_len = 1000
 
 with open(solution_dir, 'r') as solution_file:
@@ -41,15 +53,18 @@ for i in range(solution_len):
 op_lines = []
 for op_var in op_vars:
     op = op_var.split('+')
-    if op[0] not in assemblygen.inst_dict:
-        if op[0] == "cmps":
-            op[0] = "cmp"
+    if op[0] not in inst_dict:
+        if op[0] in adjust_dict:
+            op[0] = adjust_dict[op[0]]
+            if '/' in op[0]:
+                op_candidates = op[0].split('/')
+                op[0] = op_candidates[random.randint(0, len(op_candidates)-1)]
         else:
             print(op)
             exit(0)
     assert "ia" not in op # indirect addressing not supported
     inst = None
-    inst_template = assemblygen.inst_dict[op[0]]
+    inst_template = inst_dict[op[0]]
     if '{}' not in inst_template: # exclude hard-wired cases like float ops
         inst = inst_template
     elif op[0] in ('ldr', 'str'):
@@ -60,12 +75,12 @@ for op_var in op_vars:
             return 'r'+str(random.randint(0,num_reg-1))
         def gen_imm(opcode):
             return '#'+str(assemblygen.get_imm_operand(opcode))
-        if len(inst_template) == len(assemblygen.inst_dict['mov']):
+        if len(inst_template) == len(inst_dict['mov']):
             if is_using_imm:
                 inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_imm(op[0]))
             else:
                 inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg))
-        elif len(inst_template) == len(assemblygen.inst_dict['add']):
+        elif len(inst_template) == len(inst_dict['add']):
             if is_using_imm:
                 inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_reg(assemblygen.num_reg), gen_imm(op[0]))
             else:

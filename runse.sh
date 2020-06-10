@@ -33,6 +33,6 @@ do
     )
 
     paplay /usr/share/sounds/ubuntu/stereo/system-ready.ogg # notification ring of job done
-    ./run/parseinst.py ./log/runse-${i}.log ./m5out/
+    # ./run/parseinst.py ./log/runse-${i}.log ./m5out/
 
 done

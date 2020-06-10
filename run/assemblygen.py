@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 70000
+payload_size = 800000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -90,6 +90,39 @@ inst_dict = {
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
 
+inst_dict_full = { # contain ops perhaps not selected in assemblygen
+    # 'push': '    push   {{{0}}}\n',       ############ Tier 0
+    # 'pop':  '    pop    {{{0}}}\n',
+    'mov':  '    mov    {},\t{}  \n',       ############ Tier 1 -> single operand
+    'cmp':  '    cmp    {},\t{}  \n',
+    'ldr':  '    ldr    {},\t{}  \n',
+    'str':  '    str    {},\t{}  \n',
+    ## arithmetic opcodes
+    'add':  '    add    {},\t{},\t{}\n',    ############ Tier 2 -> double operands
+    'sub':  '    sub    {},\t{},\t{}\n',
+    'mul':  '    mul    {},\t{},\t{}\n',
+    ## bitwise shift/rotation opcodes
+    'lsl':  '    lsl    {},\t{},\t{}\n',
+    'lsr':  '    lsr    {},\t{},\t{}\n',
+    'asr':  '    asr    {},\t{},\t{}\n',
+    'ror':  '    ror    {},\t{},\t{}\n',
+    ## bitwise logic opcodes
+    'and':  '    and    {},\t{},\t{}\n',
+    'orr':  '    orr    {},\t{},\t{}\n',
+    'eor':  '    eor    {},\t{},\t{}\n',
+    ## float opcodes
+    'flds':     '   flds       s15, [fp, #-12] \n',
+    'fsts':     '   fsts       s15, [fp, #-12] \n',
+    'fcvtds':   '   fcvtds     d6, s15         \n',
+    'fcvtsd':   '   fcvtsd     s15, d7         \n',
+    # 'fldd':     '   fldd       d7, .Lfloat0    \n',
+    'faddd':    '   faddd      d7, d6, d7      \n',
+    'fsubd':    '   fsubd      d7, d6, d7      \n',
+    'fmuld':    '   fmuld      d7, d6, d7      \n',
+    'fdivd':    '   fdivd      d7, d6, d7      \n',
+}
+insts_full = list(inst_dict_full.keys())
+
 # note: the output imm here use the same code as its representation
 # and the range of imm should be coped with in later detailed generation
 def generate_inst():
@@ -121,7 +154,7 @@ def write_program(file_to_write):
         file_to_write.write('{0[0]}, {0[1]}, {0[2]}, {0[3]};\n'.format(inst))
 
 def get_imm_operand(opcode):
-    if opcode in insts:
+    if opcode in insts_full:
         if opcode in ('lsl', 'lsr', 'asl', 'ror'):
             return random.randint(0, 31)
         else:
