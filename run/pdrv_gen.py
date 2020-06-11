@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import sys
+
 import random
-random.seed(42)
+# random.seed(42)
 
 import json
 
@@ -13,21 +15,28 @@ adjust_dict = {
     'vldr': 'flds',
     'vstr': 'fsts',
     'vcvt': 'fcvtds/fcvtsd',
-    'vadd': 'faddd',
-    'vsub': 'fsubd',
-    'vmul': 'fmuld',
-    'vdiv': 'fdivd',
+    'vaddd': 'faddd',
+    'vsubd': 'fsubd',
+    'vmuld': 'fmuld',
+    'vdivd': 'fdivd',
 }
 inst_dict = assemblygen.inst_dict_full
 
-solution_dir = "solution/int-only/43k-solution.json"
-solution_len = 1000
+solution_dir = "solution/3/52k-power.json"
+solution_len = 100
 
 with open(solution_dir, 'r') as solution_file:
     op_power = json.loads(solution_file.readline()) # load op power as dict
 
-op_keys = op_power.keys()
-max_power_op = max(op_power, key=op_power.get)
+op_keys = list(op_power.keys())
+# max_power_op = max(op_power, key=op_power.get)
+max_power_op = op_keys[random.randint(0, len(op_keys)-1)]
+print("init op chain = {}".format(max_power_op))
+
+def gen_reg(num_reg):
+    return 'r'+str(random.randint(0,num_reg-1))
+def gen_imm(opcode):
+    return '#'+str(assemblygen.get_imm_operand(opcode))
 
 op_vars = []
 initial_op_vars = max_power_op.split("->")
@@ -71,10 +80,6 @@ for op_var in op_vars:
         inst = inst_template.format(gen_reg(assemblygen.num_reg), '[fp, #-8]')
     else:
         is_using_imm = 'i' in op
-        def gen_reg(num_reg):
-            return 'r'+str(random.randint(0,num_reg-1))
-        def gen_imm(opcode):
-            return '#'+str(assemblygen.get_imm_operand(opcode))
         if len(inst_template) == len(inst_dict['mov']):
             if is_using_imm:
                 inst = inst_template.format(gen_reg(assemblygen.num_reg), gen_imm(op[0]))
@@ -91,8 +96,14 @@ for op_var in op_vars:
     assert inst is not None
     op_lines.append(inst)
 
-with open('pv.s','w') as f:
+nops = "    mov r0, r0\n" * solution_len
+with open('run/pdrv.s','w') as f:
     if f.writable():
         f.write(assemblygen.prologue)
-        f.writelines(op_lines)
+        if "--pv-only" in sys.argv:
+            f.writelines(op_lines)
+        else:
+            for i in range(5):
+                f.writelines(op_lines)
+                f.writelines(nops)
         f.write(assemblygen.epilogue)

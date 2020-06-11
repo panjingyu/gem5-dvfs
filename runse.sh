@@ -16,6 +16,7 @@ do
     # select program to execute
 
     # CMD=tests/test-progs/hello/bin/arm/linux/hello
+    # CMD=run/basicmath_small
     # CMD=run/testout.out
     CMD=run/newgen.out
 
@@ -33,6 +34,6 @@ do
     )
 
     paplay /usr/share/sounds/ubuntu/stereo/system-ready.ogg # notification ring of job done
-    # ./run/parseinst.py ./log/runse-${i}.log ./m5out/
+    ./run/parseinst.py ./log/runse-${i}.log ./m5out/ --max-power-only
 
 done

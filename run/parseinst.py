@@ -14,7 +14,7 @@ m5out_dir = sys.argv[2]
 plist = op_tools.get_from_power_txt('power', m5out_dir + "power.txt")
 clist = op_tools.get_from_power_txt('cycle', m5out_dir + "power.txt")
 
-op_priori_depth = 3 # should be near pipeline stage num
+op_priori_depth = 2 # should be near pipeline stage num
 op_chain = op_tools.op_queue([], op_priori_depth)
 assert len(op_chain) == 0
 op_num_blocks = []
@@ -58,8 +58,17 @@ with open(m5out_dir + 'stats.txt', 'r') as stats_file:
         if '---------- Begin Simulation Statistics ----------' in l:
             num_stats_blocks += 1
 
+print("from {} to {} blocks".format(main_block_num, exit_block_num))
 if "--max-power-only" in sys.argv:
-    print("max power={}".format(max([float(x) for x in plist[main_block_num+1:exit_block_num]])))
+    if exit_block_num > main_block_num + 1:
+        power_check_range = [float(x) for x in plist[main_block_num+1:exit_block_num]]
+    elif exit_block_num == 0:
+        power_check_range = [float(x) for x in plist[320:]]
+    else:
+        power_check_range = [float(plist[main_block_num]),float(plist[exit_block_num])]
+        print("weak:")
+    print("max power={}".format(max(power_check_range)))
+    print("mean power={}".format(np.mean(power_check_range)))
     exit(0)
 
 print("stats blocks num:{}".format(num_stats_blocks))

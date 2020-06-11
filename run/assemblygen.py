@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 800000
+payload_size = 1000000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
