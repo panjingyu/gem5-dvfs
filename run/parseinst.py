@@ -37,10 +37,10 @@ with open(log_dir, 'r') as log_file:
                     op_num_total[k] = new_op_block_num[k]
             new_op_block_num = {}
         elif "system.cpu T0" in l: ##### IS micro op!!
-            if "@start_mark " in l: # space at the tail is necessary, to ensure it's the excact @main
+            if "@main.0 " in l: # space at the tail is necessary, to ensure it's the excact @main
                 assert main_block_num == 0
                 main_block_num = len(op_num_blocks)
-            elif "@exit_mark " in l:
+            elif "@exit.0 " in l:
                 assert exit_block_num == 0
                 exit_block_num = len(op_num_blocks)
             op_info = l.split(":")[3] # find op info part in this gem5 log line
