@@ -114,6 +114,7 @@ void writefile(char const *filename)
 	outfile << "	mov	r3, #0" << endl;					 //                  x = 0;
 	outfile << "	str	r3, [fp, # - 8]" << endl;	//
 	outfile << "	ldr	r3, [fp, #  - 8]" << endl; //   x = x + 2;
+	outfile << "start_mark:" << endl;
 
 	for (i = 0, m = 0, j = 0, n = 0; i < suminstruction; i++, j++, m++, n++)
 	{
@@ -178,7 +179,7 @@ void writefile(char const *filename)
 			break;
 		}
 
-		if (n == 20)
+		if (n == 10)
 		{
 			outfile << "	ble	.L" << numL << endl;
 
@@ -210,6 +211,7 @@ void writefile(char const *filename)
 		j=0;
 	}*/
 	}
+	outfile << "exit_mark:" << endl;
 	outfile << "	mov	r3, #0" << endl;
 	outfile << "	mov	r0, r3" << endl;
 	outfile << "	add	sp, fp, #0" << endl;

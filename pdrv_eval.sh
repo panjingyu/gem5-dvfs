@@ -2,10 +2,12 @@
 
 rm m5out/*
 
-PV_EXE=run/pv.out
+PV_EXE=run/testout.out
 
-./run/pdrv_gen.py
-arm-linux-gcc -static pv.s -o $PV_EXE
+# PV_EXE=run/pdrv.out
+# ./run/pdrv_gen.py --pv-only \
+# && arm-linux-gcc -static run/pdrv.s -o $PV_EXE
+
 time (./build/ARM/gem5.opt 1> log/runse-pv.log 2>&1 \
     --debug-flags=Exec \
     configs/example/se.py \
