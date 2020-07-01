@@ -10,12 +10,12 @@ import json
 import assemblygen
 import op_tools
 
-adjust_dict = {
-    'vaddd': 'faddd',
-    'vsubd': 'fsubd',
-    'vmuld': 'fmuld',
-    'vdivd': 'fdivd',
-}
+# adjust_dict = {
+#     'vaddd': 'faddd',
+#     'vsubd': 'fsubd',
+#     'vmuld': 'fmuld',
+#     'vdivd': 'fdivd',
+# }
 inst_dict = assemblygen.inst_dict_full
 
 # best solution = "solution/2/64k-power.json"
@@ -85,6 +85,7 @@ for op_var in op_vars:
     inst_template = inst_dict[op[0]]
     if '{}' not in inst_template: # exclude hard-wired cases like float ops
         inst = inst_template
+    elif ''
     elif op[0] in ('ldr', 'str'):
         inst = inst_template.format(gen_reg(assemblygen.num_reg), '[fp, #-8]')
     else:

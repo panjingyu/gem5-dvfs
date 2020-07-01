@@ -9,8 +9,8 @@ do
 
     rm m5out/*
     cd run
-        ./assemblygen.py --dir codegen --seed $i
-        arm-linux-gnueabi-gcc -static  -marm -march=armv7-a -masm-syntax-unified -mfloat-abi=softfp codegen/assembly/${i}.s -o newgen.out
+        # ./assemblygen.py --dir codegen --seed $i
+        # arm-linux-gnueabi-gcc -static  -marm -march=armv7-a -masm-syntax-unified -mfloat-abi=softfp codegen/assembly/${i}.s -o newgen.out
     cd ..
 
     # select program to execute
@@ -27,7 +27,7 @@ do
     # use default peripheral parameters
     # add debug flag Exec to see exact instuction in execution
 
-    time timeout 1m ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
+    time timeout --signal=SIGINT 80 ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
         --debug-flags=Exec,ExecUser,ExecMacro \
         configs/example/se.py \
         -c $CMD \

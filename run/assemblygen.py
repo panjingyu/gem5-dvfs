@@ -11,10 +11,6 @@ payload_size = 1000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
-is_using_single_inst = False
-target_inst = None
-
-
 prologue = \
 ''' .arch armv7-a
 	.eabi_attribute 27, 3
@@ -79,18 +75,17 @@ inst_dict = {
     # 'orr':  '    orr    {},\t{},\t{}\n',
     'eor':  '    eor    {},\t{},\t{}\n',
     ## float opcodes
-    'flds':     '   flds       s15, [fp, #-12] \n',
-    'fsts':     '   fsts       s15, [fp, #-12] \n',
-    'fcvtds':   '   fcvtds     d6, s15         \n',
-    'fcvtsd':   '   fcvtsd     s15, d7         \n',
-    # 'fldd':     '   fldd       d7, .Lfloat0    \n',
-    'faddd':    '   faddd      d7, d6, d7      \n',
-    'fsubd':    '   fsubd      d7, d6, d7      \n',
-    'fmuld':    '   fmuld      d7, d6, d7      \n',
-    'fdivd':    '   fdivd      d7, d6, d7      \n',
+    'vldr':     '   vldr.64  {},  {}, [sp, {}] \n',
+    'vstr':     '   vstr.64  {},      [sp, {}] \n',
+    'vcvt':     '   vcvt.64  {},  {}           \n',
+    'vaddd':    '   vadd.64  {},  {},  {}      \n',
+    'vsubd':    '   vsub.64  {},  {},  {}      \n',
+    'vmuld':    '   vmul.64  {},  {},  {}      \n',
+    'vdivd':    '   vdiv.64  {},  {},  {}      \n',
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
+imm_not_allowed_list = ['mul'] + [k for k in inst_dict.keys() if k[0] == 'v' and '[' not in inst_dict[k]]
 
 inst_dict_full = { # contain ops perhaps not selected in assemblygen
     # 'push': '    push   {{{0}}}\n',       ############ Tier 0
@@ -128,17 +123,10 @@ insts_full = list(inst_dict_full.keys())
 # note: the output imm here use the same code as its representation
 # and the range of imm should be coped with in later detailed generation
 def generate_inst():
-    if is_using_single_inst:
-        try:
-            opcode = insts.index(target_inst)
-        except ValueError:
-            print("opcode not found!")
-            exit(1)
-    else: #generate opcode randomly
-        opcode   = random.randint(0, num_inst_types-1)
+    opcode   = random.randint(0, num_inst_types-1)
     dest_reg = random.randint(0, num_reg-1)
     operand0  = random.randint(0, num_reg-1) # num_reg represents immediate
-    if insts[opcode] in ['mul']:
+    if insts[opcode] in imm_not_allowed_list:
         # in this case, no imm is allowed in operand1
         operand1 = random.randint(0, num_reg-1)
     else:
@@ -205,10 +193,6 @@ if __name__ == "__main__":
             seed = int(val)
         elif opt in ("-d", "--dir"):
             os.chdir(val)
-        elif opt in ("-i", "--inst"):
-            target_inst = val
-            is_using_single_inst = target_inst in inst_dict
-    assert not (target_inst is None and is_using_single_inst)
 
     random.seed(seed)
     filename_code = 'encoded/' + str(seed) + ".csv"
@@ -223,8 +207,8 @@ if __name__ == "__main__":
             inst_code = re.findall('\d+', line)
             opcode = insts[int(inst_code[0])]
             inst = inst_dict[opcode]
-            if 'push' in inst_dict and len(inst) == len(inst_dict['push']):
-                inst = inst.format('r'+inst_code[1])
+            # if 'push' in inst_dict and len(inst) == len(inst_dict['push']):
+            #     inst = inst.format('r'+inst_code[1])
             elif 'mov' in inst_dict and len(inst) == len(inst_dict['mov']):
                 operand = gen_operand(opcode, int(inst_code[2]))
                 inst = inst.format('r'+inst_code[1], operand)
@@ -232,7 +216,7 @@ if __name__ == "__main__":
                 [operand0, operand1] = gen_operand(opcode, int(inst_code[2]), \
                                                            int(inst_code[3]))
                 inst = inst.format('r'+inst_code[1], operand0, operand1)
-            elif opcode[0] == 'f':
+            elif opcode[0] == 'v':
                 # float ops
                 pass
             else:

@@ -22,7 +22,7 @@ with open(m5out_dir+'noiselist.txt','w') as noiselist_file:
 with open(m5out_dir+'numsnlist.txt','w') as numsnlist_file:
     numsnlist_file.writelines([str(n)+'\n' for n in numsnlist])
 
-op_priori_depth = 1 # should be near pipeline stage num
+op_priori_depth = 0 # should be near pipeline stage num
 op_chain = op_tools.op_queue([], op_priori_depth)
 assert len(op_chain) == 0
 op_num_blocks = []
@@ -50,17 +50,19 @@ with open(log_dir, 'r') as log_file:
                 main_block_num = len(op_num_blocks)
             elif exit_block_num == 0 and \
                  ("exit.0 " in l or 'user interrupt received' in l):
+                assert main_block_num
                 exit_block_num = len(op_num_blocks)
-            op_info = l.split(":")[3] # find op info part in this gem5 log line
+            op_info_splits = l.split(":")
+            if '.' in op_info_splits[2]:
+                # '.' in address, meaning it's a sub-microop
+                continue
+            op_info = op_info_splits[3] # find op info part in this gem5 log line
             op_varcode = op_tools.get_op_varcode(op_info, op_chain)
             if op_varcode not in new_op_block_num:
                 new_op_block_num[op_varcode] = 1
             else:
                 new_op_block_num[op_varcode] += 1
     op_num_blocks.append(new_op_block_num)
-
-if main_block_num and not exit_block_num:
-    exit_block_num = len(op_num_blocks) # if gem5 interrupted while running (too long)
 
 num_stats_blocks = 0
 with open(m5out_dir + 'stats.txt', 'r') as stats_file:
@@ -69,11 +71,19 @@ with open(m5out_dir + 'stats.txt', 'r') as stats_file:
         if '---------- Begin Simulation Statistics ----------' in l:
             num_stats_blocks += 1
 
-# output total ops
-with open('op_dic.json', 'w') as op_dict_file:
-    op_dict_file.write(json.dumps(op_num_total))
+# output main part ops
+op_blocks_main_part = op_num_blocks[main_block_num+1:exit_block_num]
+eq_num = len(op_blocks_main_part)
+op_num_main_part = {}
+for b in op_blocks_main_part:
+    for op in b:
+        if op not in op_num_main_part:
+            op_num_main_part[op] = 1
+        else:
+            op_num_main_part[op] += 1
+with open('op_main_dic.json', 'w') as op_dict_file:
+    op_dict_file.write(json.dumps(op_num_main_part, indent=1))
 
-# print("from {} to {} blocks".format(main_block_num, exit_block_num))
 print("start from:{}".format(main_block_num))
 print("exit at:{}".format(exit_block_num))
 if "--max-power-only" in sys.argv:
@@ -88,24 +98,6 @@ if "--max-power-only" in sys.argv:
     print("mean power={}".format(np.mean(power_check_range)))
     exit(0)
 
-print("stats blocks num:{}".format(num_stats_blocks))
-print("powerlist len:{}".format(len(plist)))
-print("different opcode num:{}".format(len(op_num_total)))
-print(len(op_num_blocks))
-
-assert num_stats_blocks == len(op_num_blocks) or num_stats_blocks == len(op_num_blocks) - 1 # latter stands for gem5 faulty exit case
-op_blocks_main_part = op_num_blocks[main_block_num+1:exit_block_num]
-# del op_num_blocks
-# gc.collect()
-
-eq_num = len(op_blocks_main_part)
-op_num_main_part = {}
-for b in op_blocks_main_part:
-    for op in b:
-        if op not in op_num_main_part:
-            op_num_main_part[op] = 1
-        else:
-            op_num_main_part[op] += 1
 print("size of A:{} * {}".format(eq_num, len(op_num_main_part)))
 A = cp.zeros((eq_num, len(op_num_main_part)), dtype=cp.int)
 for i, eq_block in enumerate(op_blocks_main_part):
@@ -117,13 +109,11 @@ for i, eq_block in enumerate(op_blocks_main_part):
 
 ####### ENERGY SOLVING #######
 print("Start ENERGY SOLVING...")
-print('p={}, c={}, n={}'.format(len(plist), len(clist), num_stats_blocks))
 assert len(plist) == len(clist)
 b_energy = (cp.asarray(plist) * cp.asarray(clist))[main_block_num+1:exit_block_num]
 print("solving lstsq...")
 x_e, residuals_e, rank_e, s_e = cp.linalg.lstsq(A, b_energy) # cycles not included
 assert exit_block_num - main_block_num - 1 == len(b_energy)
-print("effective eq num:{}".format(len(b_energy))) 
 print("rank of A in energy solving:{}".format(rank_e))
 print("num of vars:{}".format(len(x_e)))
 op_energy = {}
@@ -162,7 +152,7 @@ op_max_power = max(sorted_op_power, key=sorted_op_power.get)
 print("max power op is {} by {}".format(op_max_power, sorted_op_power[op_max_power]))
 
 with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-power.json", "w") as power_solution_file:
-    power_solution_file.write(json.dumps(sorted_op_power))
+    power_solution_file.write(json.dumps(sorted_op_power, indent=1))
 
 with open(m5out_dir + "../" +  str(len(b_cycles)//1000) + "k-cycle.json", "w") as cycle_solution_file:
-    cycle_solution_file.write(json.dumps(sorted_op_cycle))
+    cycle_solution_file.write(json.dumps(sorted_op_cycle, indent=1))
