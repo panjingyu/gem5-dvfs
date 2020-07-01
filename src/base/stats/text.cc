@@ -44,7 +44,8 @@
 
 #include "base/stats/info.hh"
 #include "base/stats/text.hh"
-#include "base/cast.hh"FormulaIn
+#include "base/cast.hh"
+#include "base/misc.hh"
 #include "base/str.hh"
 #include <complex>
 #include <string>
