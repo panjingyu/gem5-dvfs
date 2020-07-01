@@ -75,13 +75,20 @@ inst_dict = {
     # 'orr':  '    orr    {},\t{},\t{}\n',
     'eor':  '    eor    {},\t{},\t{}\n',
     ## float opcodes
-    'vldr':     '   vldr.64  {},  {}, [sp, {}] \n',
-    'vstr':     '   vstr.64  {},      [sp, {}] \n',
-    'vcvt':     '   vcvt.64  {},  {}           \n',
-    'vaddd':    '   vadd.64  {},  {},  {}      \n',
-    'vsubd':    '   vsub.64  {},  {},  {}      \n',
-    'vmuld':    '   vmul.64  {},  {},  {}      \n',
-    'vdivd':    '   vdiv.64  {},  {},  {}      \n',
+    'vabs':     '   vabs.64     d{}, d{}           \n',
+    'vadd':     '   vadd.64     d{}, d{}, d{}      \n',
+    'vcmp':     '   vcmp.f64	d{}, #0            \n',
+    'vcvt':     '   vcvt.64     d{}, d{}           \n',
+    'vldr':     '   vldr.64     d{}, d{}, [sp, {}] \n',
+    'vdiv':     '   vdiv.64     d{}, d{}, d{}      \n',
+    'vmov':     '   vmov        d{}, r{}, r{}      \n',
+    'vmul':     '   vmul.64     d{}, d{}, d{}      \n',
+    'vmrs':     '   vmrs	    APSR_nzcv, FPSCR   \n',
+    'vnegdpl':  '	vnegpl.f64	d{}, d{}           \n',
+    'vnmls':    '   vnmls.f64	d{}, d{}, d{}      \n',
+    'vstr':     '   vstr.64     d{},      [sp, {}] \n',
+    'vsub':     '   vsub.64     d{}, d{}, d{}      \n',
+    'vsqrt':    '   vsqrt.f64	d{}, d{}           \n',
 }
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
@@ -91,7 +98,8 @@ equiv_dict = {
     'mov': ['mvn'],
     'add': ['sub', 'rsb', 'rsc', 'adc', 'sbc'],
     'cmp': ['cmn', 'teq', 'tst'],
-    'eor': ['and', 'orr', 'ror', 'asr', 'lsr', 'lsl', 'clz']
+    'eor': ['and', 'orr', 'ror', 'asr', 'lsr', 'lsl', 'clz'],
+    'vmul': ['vmla']
 }
 
 inst_dict_full = { # contain ops perhaps not selected in assemblygen
