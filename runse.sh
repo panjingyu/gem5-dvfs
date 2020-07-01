@@ -27,7 +27,7 @@ do
     # use default peripheral parameters
     # add debug flag Exec to see exact instuction in execution
 
-    time timeout --signal=SIGINT 80 ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
+    time timeout --signal=SIGINT 200 ./build/ARM/gem5.opt 1> log/runse-${i}.log 2>&1 \
         --debug-flags=Exec,ExecUser,ExecMacro \
         configs/example/se.py \
         -c $CMD \

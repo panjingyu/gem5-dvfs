@@ -86,6 +86,13 @@ inst_dict = {
 insts = list(inst_dict.keys())
 num_inst_types = len(inst_dict)
 imm_not_allowed_list = ['mul'] + [k for k in inst_dict.keys() if k[0] == 'v' and '[' not in inst_dict[k]]
+equiv_dict = {
+    'mul': ['mla', 'mls'],
+    'mov': ['mvn'],
+    'add': ['sub', 'rsb', 'rsc'],
+    'cmp': ['cmn', 'teq', 'tst'],
+    'eor': ['and', 'orr', 'ror', 'asr', 'lsr', 'lsl', 'clz']
+}
 
 inst_dict_full = { # contain ops perhaps not selected in assemblygen
     # 'push': '    push   {{{0}}}\n',       ############ Tier 0
@@ -207,8 +214,8 @@ if __name__ == "__main__":
             inst_code = re.findall('\d+', line)
             opcode = insts[int(inst_code[0])]
             inst = inst_dict[opcode]
-            # if 'push' in inst_dict and len(inst) == len(inst_dict['push']):
-            #     inst = inst.format('r'+inst_code[1])
+            if 'push' in inst_dict and len(inst) == len(inst_dict['push']):
+                inst = inst.format('r'+inst_code[1])
             elif 'mov' in inst_dict and len(inst) == len(inst_dict['mov']):
                 operand = gen_operand(opcode, int(inst_code[2]))
                 inst = inst.format('r'+inst_code[1], operand)
