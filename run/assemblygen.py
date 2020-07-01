@@ -7,7 +7,7 @@ import re
 import random
 
 num_reg = 10
-payload_size = 1000000
+payload_size = 1000
 
 imm_frac = 0.5 # ratio of imm to total operand1
 
@@ -29,6 +29,8 @@ prologue = \
 	.eabi_attribute 18, 4
 .Ltext0:
 	.align	2
+    .syntax unified
+    .arm
 	.global	main
 	.type	main, %function
 
@@ -45,7 +47,7 @@ main:
 	mov	r3, #0
 	str	r3, [fp, #-8]
 	ldr	r3, [fp, #-8]
-    fldd       d7, .Lfloat0
+    fldr       d7, .Lfloat0
 start_mark:
 '''
 

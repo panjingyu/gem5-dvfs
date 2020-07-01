@@ -19,6 +19,17 @@ def get_from_power_txt(item_name, power_txt_dir):
                 ret.append(val_formatter(match.group(0)))
     return ret
 
+def get_from_noise_txt(noise_txt_dir):
+    nlist = []
+    nums_noise = []
+    with open(noise_txt_dir, 'r') as noisetxt_file:
+        for l in noisetxt_file.readlines():
+            if ' noise =' in l:
+                nlist.append(float(re.search('\d+\.\d+', l).group()))
+            elif 'nums_noise = ' in l:
+                nums_noise.append(int(re.search('\d+', l).group()))
+    return (nlist, nums_noise)
+        
 class op_queue(object):
 
     def __init__(self, item_list:list, max_len:int):

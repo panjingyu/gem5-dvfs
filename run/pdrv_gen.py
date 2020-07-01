@@ -3,7 +3,7 @@
 import sys
 
 import random
-# random.seed(42)
+random.seed(42)
 
 import json
 
@@ -11,10 +11,6 @@ import assemblygen
 import op_tools
 
 adjust_dict = {
-    'cmps': 'cmp',
-    'vldr': 'flds',
-    'vstr': 'fsts',
-    'vcvt': 'fcvtds/fcvtsd',
     'vaddd': 'faddd',
     'vsubd': 'fsubd',
     'vmuld': 'fmuld',
@@ -22,8 +18,10 @@ adjust_dict = {
 }
 inst_dict = assemblygen.inst_dict_full
 
-solution_dir = "solution/3/52k-power.json"
-solution_len = 100
+# best solution = "solution/2/64k-power.json"
+solution_dir = "solution/2/64k-power.json"
+solution_len = 24
+repeat_times = 10
 
 with open(solution_dir, 'r') as solution_file:
     op_power = json.loads(solution_file.readline()) # load op power as dict
@@ -42,21 +40,32 @@ op_vars = []
 initial_op_vars = max_power_op.split("->")
 op_chain = op_tools.op_queue(initial_op_vars, len(initial_op_vars))
 
+
+if '--random' in sys.argv:
+    solution_len *= 2
 for i in range(solution_len):
-    op_vars.append(op_chain.dequeue())
     # priori of next op is in op_chain
-    op_priori = op_chain.get_current_chain() + "->"
-    next_op_max_power = None
-    for k in op_keys:
-        if k.find(op_priori) == 0:
-            if next_op_max_power is None or op_power[k] > next_op_max_power:
-                next_op_max_power = op_power[k]
-                next_ops = k[len(op_priori):]
+    op_vars.append(op_chain.dequeue())
+    if '--random' in sys.argv:
+        next_op_max_power = True
+        next_ops = op_keys[random.randint(0, len(op_keys)-1)].split("->")
+    else:
+        op_priori = op_chain.get_current_chain() + "->"
+        next_op_max_power = None
+        for k in op_keys:
+            if k.find(op_priori) == 0:
+                if next_op_max_power is None or op_power[k] > next_op_max_power:
+                    next_op_max_power = op_power[k]
+                    next_ops = k[len(op_priori):]
     # after every key searched
     if next_op_max_power is not None:
-        for next_op in next_ops.split("->"):
-            assert not op_chain.is_full()
+        if '--random' in sys.argv:
+            next_op = next_ops[random.randint(0, len(next_ops)-1)]
             op_chain.enqueue(next_op)
+        else:
+            for next_op in next_ops.split("->"):
+                # assert not op_chain.is_full()
+                op_chain.enqueue(next_op)
 
 # TODO: convert op vars to op lines
 op_lines = []
@@ -96,14 +105,17 @@ for op_var in op_vars:
     assert inst is not None
     op_lines.append(inst)
 
-nops = "    mov r0, r0\n" * solution_len
+if '--random' not in sys.argv:
+    nops = "    mov r0, r0\n" * solution_len
+else:
+    nops = []
 with open('run/pdrv.s','w') as f:
     if f.writable():
         f.write(assemblygen.prologue)
         if "--pv-only" in sys.argv:
             f.writelines(op_lines)
         else:
-            for i in range(5):
+            for i in range(repeat_times):
                 f.writelines(op_lines)
                 f.writelines(nops)
         f.write(assemblygen.epilogue)
