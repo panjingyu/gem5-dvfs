@@ -89,7 +89,7 @@ imm_not_allowed_list = ['mul'] + [k for k in inst_dict.keys() if k[0] == 'v' and
 equiv_dict = {
     'mul': ['mla', 'mls'],
     'mov': ['mvn'],
-    'add': ['sub', 'rsb', 'rsc'],
+    'add': ['sub', 'rsb', 'rsc', 'adc', 'sbc'],
     'cmp': ['cmn', 'teq', 'tst'],
     'eor': ['and', 'orr', 'ror', 'asr', 'lsr', 'lsl', 'clz']
 }

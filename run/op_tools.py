@@ -67,58 +67,59 @@ class op_queue(object):
             self.dequeue()
         return ret
         
-op_pattern = re.compile("[a-z_]+") # find opcode
-def get_op_varcode(op_info:str) -> str:
-    # op_info should be a string of micro op
-    op_match = op_pattern.search(op_info)
-    if op_match:
-        op_opcode = op_match.group(0)
-        op_info_splitted = op_info.split()
-        op_varcode = op_opcode
-        if op_opcode not in inst_dict:
-            found_equivalent = False
-            for k in inst_dict:
+def get_op_varcode(op_info_splitted:list) -> str:
+    # op_info_splitted should be a string of micro op
+    op_opcode = op_info_splitted[0]
+    op_varcode = op_opcode
+    found_equivalent = op_opcode in inst_dict
+    if not found_equivalent:
+        for k in inst_dict:
+            if found_equivalent:
+                break
+            elif k in equiv_dict:
+                keys = [k] + equiv_dict[k]
+            else:
+                keys = [k]
+            for kk in keys:
                 if found_equivalent:
                     break
-                elif k in equiv_dict:
-                    keys = [k] + equiv_dict[k]
-                else:
-                    keys = [k]
-                for kk in keys:
-                    if found_equivalent:
-                        break
-                    elif  op_opcode.find(kk) == 0 \
-                        or (op_opcode.find(kk) == 1 and op_opcode[0] == 'u'):
-                        # remove condition at the tail
-                        # or convert unsigned version
-                        op_varcode = k
-                        found_equivalent = True
-            if not found_equivalent:
-                op_varcode = op_opcode + '+?'
-            # ASR, LSL, LSR, ROR, and RRX are regarded as imm
-            if len(op_info_splitted) > 1: # not without operand
-                def has_extended_imm(operand):
-                    return    "ASR" in op_info_splitted[i] \
-                        or "LSL" in op_info_splitted[i] \
-                        or "LSR" in op_info_splitted[i] \
-                        or "ROR" in op_info_splitted[i] \
-                        or "RRX" in op_info_splitted[i]
-                for i in range(1, min(4, len(op_info_splitted))):
-                    if '#' in op_info_splitted[i]:
-                        # direct imm
-                        op_varcode = op_varcode + "+i"
-                    elif has_extended_imm(op_info_splitted[i]):
-                        # extended imm
-                        op_varcode = op_varcode + "+i"
-                        break
-                    elif '[' in op_info_splitted[i]:
-                        op_varcode = op_varcode + "+d"
-                        break
-                    else:
-                        # must be reg
-                        op_varcode = op_varcode + "+r"
-        return op_varcode
+                elif  op_opcode.find(kk) == 0 \
+                    or (op_opcode.find(kk) == 1 and op_opcode[0] == 'u'):
+                    # remove condition at the tail
+                    # or convert unsigned version
+                    op_varcode = k
+                    found_equivalent = True
+    if not found_equivalent:
+        op_varcode = op_opcode + '+?'
+    # ASR, LSL, LSR, ROR, and RRX are regarded as imm
     else:
-        print("find opcode error:")
-        print(op_info)
-        exit(1)
+        expected_operand_num = inst_dict[op_varcode].count("{}")
+        while expected_operand_num + 1 > len(op_info_splitted):
+            op_info_splitted += ['r']
+        # if op_varcode == 'mul':
+        #     # print("{} -> {}".format(op_opcode, op_varcode))
+        #     print(op_info_splitted)
+    if len(op_info_splitted) > 1: # not without operand
+        def has_extended_imm(operand):
+            return    "ASR" in op_info_splitted[i] \
+                or "LSL" in op_info_splitted[i] \
+                or "LSR" in op_info_splitted[i] \
+                or "ROR" in op_info_splitted[i] \
+                or "RRX" in op_info_splitted[i]
+        for i in range(1, min(4, len(op_info_splitted))):
+            if '#' in op_info_splitted[i]:
+                # direct imm
+                op_varcode = op_varcode + "+i"
+            elif has_extended_imm(op_info_splitted[i]):
+                # extended imm
+                op_varcode = op_varcode + "+i"
+                break
+            elif '[' in op_info_splitted[i]:
+                op_varcode = op_varcode + "+d"
+                break
+            else:
+                # must be reg
+                op_varcode = op_varcode + "+r"
+    if op_varcode == 'mul':
+        print(op_info_splitted)
+    return op_varcode

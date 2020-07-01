@@ -8,7 +8,7 @@ import json
 import op_tools
 
 # branch not included below, check 'b' directly
-skip_list = ['svc', 'dmb', 'dsb', 'mrc']
+skip_list = ['svc', 'dmb', 'dsb', 'mrc', 'ldmstm']
 
 print("Start parsing insts...")
 
@@ -60,10 +60,14 @@ with open(log_dir, 'r') as log_file:
                 # '.' in address, meaning it's a sub-microop
                 continue
             op_info = op_info_splits[3] # find op info part in this gem5 log line
-            op_varcode = op_tools.get_op_varcode(op_info)
-            if op_varcode[0] == 'b' or op_varcode.split('+')[0] in skip_list:
+            op_info_splitted = op_info.split()
+            op_opcode = op_info_splitted[0]
+            if op_opcode[0] == 'b' or op_opcode in skip_list:
                 # skip branch ops
                 continue
+            op_varcode = op_tools.get_op_varcode(op_info_splitted)
+            if '?' in op_varcode:
+                print("in parseinst: "+op_info)
             op_varcode_chain = op_chain.chain(op_varcode)
             if op_varcode_chain not in new_op_block_num:
                 new_op_block_num[op_varcode_chain] = 1
